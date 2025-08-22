@@ -62,6 +62,25 @@
         .menu-nav-button:hover {
             transform: translateY(-2px);
         }
+        
+        /* Styles for general menu buttons */
+        .menu-button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-button:hover {
+            background-color: #0056b3;
+        }
 
         /* Styles for the menu sections that hold content for each tab */
         .menu-section {
@@ -102,7 +121,7 @@
         <!-- Bravais Lattice content section -->
         <div id="bravaisSection" class="menu-section active">
             <h2>Bravais Lattice</h2>
-            <!-- No content needed here yet -->
+            <button id="simpleCubicBtn" class="menu-button">Simple Cubic</button>
         </div>
 
         <!-- Basis content section -->
@@ -138,6 +157,7 @@
             const basisSection = document.getElementById('basisSection');
             const unitCellSection = document.getElementById('unitCellSection');
             const rendererContainer = document.getElementById('rendererContainer');
+            const simpleCubicBtn = document.getElementById('simpleCubicBtn');
 
             // --- Scene Setup ---
             const scene = new THREE.Scene();
@@ -145,7 +165,7 @@
 
             // --- Camera Setup ---
             const camera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
-            camera.position.z = 5; // Set the initial camera position
+            camera.position.z = 15; // Set the initial camera position, moved back to see more of the lattice
 
             // --- Renderer Setup ---
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -160,11 +180,68 @@
             pointLight.position.set(10, 10, 10);
             scene.add(pointLight);
 
-            // --- Create a Test Object (a Cube) ---
-            const geometry = new THREE.BoxGeometry();
-            const material = new THREE.MeshPhongMaterial({ color: 0x007bff, emissive: 0x002244 });
-            const cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);
+            // --- State variables for rendering mode ---
+            let currentObjects = [];
+            const spacing = 4; // Global spacing variable for the lattice points
+
+            // --- Scene Cleanup Function ---
+            function clearScene() {
+                // Remove all existing objects from the scene
+                currentObjects.forEach(obj => {
+                    scene.remove(obj);
+                    // Dispose of the geometry and material to free up memory
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) obj.material.dispose();
+                });
+                // Clear the tracking array
+                currentObjects = [];
+            }
+
+            // --- Lattice Point Generation Functions ---
+            // This function generates the list of lattice points for a simple cubic structure
+            function generateSimpleCubicPoints() {
+                const gridSize = 5;
+                const points = [];
+                for (let x = -gridSize; x <= gridSize; x++) {
+                    for (let y = -gridSize; y <= gridSize; y++) {
+                        for (let z = -gridSize; z <= gridSize; z++) {
+                            // Create a new THREE.Vector3 at each grid point
+                            points.push(new THREE.Vector3(x * spacing, y * spacing, z * spacing));
+                        }
+                    }
+                }
+                return points;
+            }
+
+            // --- Main Rendering Function ---
+            // This function renders the atoms based on the lattice points and the basis
+            function renderCrystalStructure(latticePoints, basis) {
+                clearScene(); // Clear any objects from the previous render
+                
+                // For each lattice point...
+                latticePoints.forEach(latticePoint => {
+                    // ...and for each atom in the basis...
+                    basis.forEach(atom => {
+                        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+                        const material = new THREE.MeshPhongMaterial({ color: atom.color, emissive: new THREE.Color(atom.color).multiplyScalar(0.2) });
+                        const sphere = new THREE.Mesh(geometry, material);
+
+                        // Calculate the final position by adding the basis offset to the lattice point's coordinates
+                        sphere.position.set(
+                            latticePoint.x + atom.x * spacing,
+                            latticePoint.y + atom.y * spacing,
+                            latticePoint.z + atom.z * spacing
+                        );
+                        
+                        scene.add(sphere);
+                        currentObjects.push(sphere); // Add the sphere to our tracking array
+                    });
+                });
+            }
+
+            // --- Default Basis for Bravais Lattice view ---
+            // A simple basis with one atom at the origin (0,0,0)
+            const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#8888ff' }];
 
             // --- UI and Event Listeners for Tabs ---
             function showSection(sectionId) {
@@ -195,6 +272,18 @@
                 showSection('unitCellSection');
                 setActiveNavButton('unitCellBtn');
             });
+            
+            // Event listener for the new Simple Cubic button
+            simpleCubicBtn.addEventListener('click', () => {
+                const latticePoints = generateSimpleCubicPoints();
+                renderCrystalStructure(latticePoints, defaultBravaisBasis);
+            });
+
+            // --- Initial render on page load ---
+            // Render a simple cubic lattice by default
+            const initialLatticePoints = generateSimpleCubicPoints();
+            renderCrystalStructure(initialLatticePoints, defaultBravaisBasis);
+
 
             // --- Interaction (Mouse & Touch) ---
             let isDragging = false;
