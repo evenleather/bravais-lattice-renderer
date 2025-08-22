@@ -294,24 +294,30 @@
             // --- Expanded Lattice Generation Function ---
             // This function takes the points of a single unit cell and expands them
             function generateFullLattice(unitCellPoints, numX, numY, numZ) {
-                const fullLatticePoints = [];
+                const fullLatticePoints = new Set();
                 for (let i = 0; i < numX; i++) {
                     for (let j = 0; j < numY; j++) {
                         for (let k = 0; k < numZ; k++) {
                             unitCellPoints.forEach(point => {
                                 // Add a new lattice point by translating the unit cell point
-                                fullLatticePoints.push(
-                                    new THREE.Vector3(
-                                        point.x + i,
-                                        point.y + j,
-                                        point.z + k
-                                    )
+                                // Use a string representation for the Set to handle unique points across cells
+                                const translatedPoint = new THREE.Vector3(
+                                    point.x + i,
+                                    point.y + j,
+                                    point.z + k
                                 );
+                                fullLatticePoints.add(`${translatedPoint.x},${translatedPoint.y},${translatedPoint.z}`);
                             });
                         }
                     }
                 }
-                return fullLatticePoints;
+
+                // Convert back to THREE.Vector3 objects
+                const uniqueLatticePoints = Array.from(fullLatticePoints).map(str => {
+                    const parts = str.split(',').map(Number);
+                    return new THREE.Vector3(parts[0], parts[1], parts[2]);
+                });
+                return uniqueLatticePoints;
             }
 
             // --- Main Rendering Function ---
@@ -328,8 +334,8 @@
                 latticePoints.forEach(latticePoint => {
                     // ...and for each atom in the basis...
                     basis.forEach(atom => {
-                        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-                        const material = new THREE.MeshPhongMaterial({ color: atom.color, emissive: new THREE.Color(atom.color).multiplyScalar(0.2) });
+                        const geometry = new THREE.SphereGeometry(0.25, 32, 32);
+                        const material = new THREE.MeshPhongMaterial({ color: '#ffffff', emissive: new THREE.Color('#ffffff').multiplyScalar(0.2) });
                         const sphere = new THREE.Mesh(geometry, material);
 
                         // Calculate the final position by adding the basis offset and centering the whole structure
@@ -356,7 +362,7 @@
                 const unitCellPoints = currentLatticeGenerator();
                 const latticePoints = generateFullLattice(unitCellPoints, numX, numY, numZ);
 
-                const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#8888ff' }];
+                const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#ffffff' }];
                 renderCrystalStructure(latticePoints, defaultBravaisBasis, numX, numY, numZ);
             }
 
@@ -423,7 +429,8 @@
             let isPanning = false;
             let previousMousePosition = { x: 0, y: 0 };
             const rotationSpeed = 0.005;
-            const panSpeed = 0.01;
+            const panSpeed = 0.025;
+            const zoomSpeed = 0.025;
 
             renderer.domElement.addEventListener('mousedown', (event) => {
                 isDragging = true;
@@ -460,7 +467,6 @@
             });
 
             renderer.domElement.addEventListener('wheel', (event) => {
-                const zoomSpeed = 0.1;
                 camera.position.z += event.deltaY * zoomSpeed;
                 camera.position.z = Math.max(1, Math.min(100, camera.position.z));
             });
