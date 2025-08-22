@@ -128,11 +128,42 @@
             width: 100%;
             box-sizing: border-box;
         }
+        
+        .input-group-inline {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group-inline input[type="number"] {
+            width: calc(33.33% - 7px);
+        }
 
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .atom-list {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 50px;
+        }
+
+        .atom-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .atom-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid #fff;
         }
     </style>
 </head>
@@ -157,8 +188,26 @@
 
         <!-- Basis content section -->
         <div id="basisSection" class="menu-section">
-            <h2>Basis</h2>
-            <!-- No content needed here yet -->
+            <h2>Add Atom to Basis</h2>
+            <div class="input-group">
+                <label>Fractional Coordinates</label>
+                <div class="input-group-inline">
+                    <input type="number" id="basisX" value="0" step="0.1">
+                    <input type="number" id="basisY" value="0" step="0.1">
+                    <input type="number" id="basisZ" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="basisColor">Atom Color</label>
+                <input type="color" id="basisColor" value="#ff8800">
+            </div>
+            <button id="addAtomBtn" class="menu-button">Add Atom</button>
+            <button id="clearBasisBtn" class="menu-button" style="background-color: #dc3545;">Clear Basis</button>
+            
+            <h3>Current Basis</h3>
+            <div id="atomList" class="atom-list">
+                <!-- Atom list items will be dynamically added here -->
+            </div>
         </div>
 
         <!-- Unit Cell content section -->
@@ -215,6 +264,15 @@
             const numZInput = document.getElementById('numZ');
             const showLinesCheckbox = document.getElementById('showLinesCheckbox');
             const showFacesCheckbox = document.getElementById('showFacesCheckbox');
+            
+            // New UI elements for the basis tab
+            const basisXInput = document.getElementById('basisX');
+            const basisYInput = document.getElementById('basisY');
+            const basisZInput = document.getElementById('basisZ');
+            const basisColorInput = document.getElementById('basisColor');
+            const addAtomBtn = document.getElementById('addAtomBtn');
+            const clearBasisBtn = document.getElementById('clearBasisBtn');
+            const atomListDiv = document.getElementById('atomList');
 
 
             // --- Scene Setup ---
@@ -238,10 +296,11 @@
             pointLight.position.set(10, 10, 10);
             scene.add(pointLight);
 
-            // --- State variables for rendering mode ---
+            // --- State variables for rendering mode and basis ---
             let currentObjects = [];
+            let currentLatticeGenerator = generateUnitCellPPoints; // Default to Cubic P
+            let currentBasis = [{ x: 0, y: 0, z: 0, color: '#ffffff' }]; // Default basis is a single atom at the origin
             const spacing = 4; // Global spacing variable for the lattice points
-            let currentLatticeGenerator = generateUnitCellPPoints; // Default lattice generator
 
             // --- Scene Cleanup Function ---
             function clearScene() {
@@ -451,7 +510,7 @@
                     // ...and for each atom in the basis...
                     basis.forEach(atom => {
                         const geometry = new THREE.SphereGeometry(0.25, 32, 32);
-                        const material = new THREE.MeshPhongMaterial({ color: '#ffffff', emissive: new THREE.Color('#ffffff').multiplyScalar(0.2) });
+                        const material = new THREE.MeshPhongMaterial({ color: atom.color, emissive: new THREE.Color(atom.color).multiplyScalar(0.2) });
                         const sphere = new THREE.Mesh(geometry, material);
 
                         // Calculate the final position by adding the basis offset and centering the whole structure
@@ -467,6 +526,18 @@
                 });
             }
 
+            // --- Render a single unit cell and its basis ---
+            function renderBasisOnly() {
+                clearScene(); // Clear existing objects
+                
+                // Render the unit cell
+                addUnitCellLines(1, 1, 1);
+                addUnitCellFaces(1, 1, 1);
+                
+                // Render the atoms in the basis
+                renderCrystalStructure([new THREE.Vector3(0, 0, 0)], currentBasis, 1, 1, 1);
+            }
+
             // --- Main Render Orchestration Function ---
             // This function gets the necessary data and triggers the render
             function renderCurrentLattice() {
@@ -478,8 +549,7 @@
                 const unitCellPoints = currentLatticeGenerator();
                 const latticePoints = generateFullLattice(unitCellPoints, numX, numY, numZ);
 
-                const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#ffffff' }];
-                renderCrystalStructure(latticePoints, defaultBravaisBasis, numX, numY, numZ);
+                renderCrystalStructure(latticePoints, currentBasis, numX, numY, numZ);
                 
                 // Add lines if the checkbox is checked
                 if (showLinesCheckbox.checked) {
@@ -490,6 +560,24 @@
                 if (showFacesCheckbox.checked) {
                     addUnitCellFaces(numX, numY, numZ);
                 }
+            }
+
+            // --- Function to update the atom list UI ---
+            function updateBasisDisplay() {
+                atomListDiv.innerHTML = '';
+                if (currentBasis.length === 0) {
+                    atomListDiv.innerHTML = '<p>No atoms added yet.</p>';
+                    return;
+                }
+                currentBasis.forEach(atom => {
+                    const item = document.createElement('div');
+                    item.className = 'atom-item';
+                    item.innerHTML = `
+                        <span class="atom-dot" style="background-color: ${atom.color};"></span>
+                        <span>(${atom.x}, ${atom.y}, ${atom.z})</span>
+                    `;
+                    atomListDiv.appendChild(item);
+                });
             }
 
             // --- UI and Event Listeners for Tabs ---
@@ -510,16 +598,19 @@
             bravaisBtn.addEventListener('click', () => {
                 showSection('bravaisSection');
                 setActiveNavButton('bravaisBtn');
+                renderCurrentLattice();
             });
 
             basisBtn.addEventListener('click', () => {
                 showSection('basisSection');
                 setActiveNavButton('basisBtn');
+                renderBasisOnly();
             });
             
             unitCellBtn.addEventListener('click', () => {
                 showSection('unitCellSection');
                 setActiveNavButton('unitCellBtn');
+                renderCurrentLattice();
             });
             
             // Event listener for the Cubic P button
@@ -540,6 +631,35 @@
                 renderCurrentLattice();
             });
 
+            // Event listener for adding an atom to the basis
+            addAtomBtn.addEventListener('click', () => {
+                const newAtom = {
+                    x: parseFloat(basisXInput.value),
+                    y: parseFloat(basisYInput.value),
+                    z: parseFloat(basisZInput.value),
+                    color: basisColorInput.value
+                };
+                currentBasis.push(newAtom);
+                updateBasisDisplay();
+                // Check which tab is active before rendering
+                if (basisSection.classList.contains('active')) {
+                    renderBasisOnly();
+                } else {
+                    renderCurrentLattice();
+                }
+            });
+            
+            // Event listener to clear the basis
+            clearBasisBtn.addEventListener('click', () => {
+                currentBasis = []; // Reset the basis to an empty array
+                updateBasisDisplay();
+                if (basisSection.classList.contains('active')) {
+                    renderBasisOnly();
+                } else {
+                    renderCurrentLattice();
+                }
+            });
+
             // Event listeners for the unit cell count inputs
             numXInput.addEventListener('input', renderCurrentLattice);
             numYInput.addEventListener('input', renderCurrentLattice);
@@ -550,6 +670,7 @@
 
             // --- Initial render on page load ---
             renderCurrentLattice();
+            updateBasisDisplay();
 
 
             // --- Interaction (Mouse & Touch) ---
