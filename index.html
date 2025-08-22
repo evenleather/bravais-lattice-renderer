@@ -105,6 +105,29 @@
             width: 100%;
             height: 100%;
         }
+
+        /* Styles for the number inputs */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .input-group input[type="number"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -123,6 +146,7 @@
             <h2>Bravais Lattice</h2>
             <button id="cubicCBtn" class="menu-button">Cubic C</button>
             <button id="cubicIBtn" class="menu-button">Cubic I</button>
+            <button id="cubicFBtn" class="menu-button">Cubic F</button>
         </div>
 
         <!-- Basis content section -->
@@ -134,7 +158,18 @@
         <!-- Unit Cell content section -->
         <div id="unitCellSection" class="menu-section">
             <h2>Unit Cell</h2>
-            <!-- No content needed here yet -->
+            <div class="input-group">
+                <label for="numX">Number of Cells (X-dir)</label>
+                <input type="number" id="numX" value="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="numY">Number of Cells (Y-dir)</label>
+                <input type="number" id="numY" value="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="numZ">Number of Cells (Z-dir)</label>
+                <input type="number" id="numZ" value="1" min="1">
+            </div>
         </div>
     </div>
 
@@ -160,6 +195,10 @@
             const rendererContainer = document.getElementById('rendererContainer');
             const cubicCBtn = document.getElementById('cubicCBtn');
             const cubicIBtn = document.getElementById('cubicIBtn');
+            const cubicFBtn = document.getElementById('cubicFBtn');
+            const numXInput = document.getElementById('numX');
+            const numYInput = document.getElementById('numY');
+            const numZInput = document.getElementById('numZ');
 
             // --- Scene Setup ---
             const scene = new THREE.Scene();
@@ -185,6 +224,7 @@
             // --- State variables for rendering mode ---
             let currentObjects = [];
             const spacing = 4; // Global spacing variable for the lattice points
+            let currentLatticeGenerator = generateUnitCellCPoints; // Default lattice generator
 
             // --- Scene Cleanup Function ---
             function clearScene() {
@@ -199,9 +239,9 @@
                 currentObjects = [];
             }
 
-            // --- Lattice Point Generation Functions ---
-            // This function generates the lattice points for a single simple cubic unit cell (8 points)
-            function generateCubicCPoints() {
+            // --- Unit Cell Point Generation Functions ---
+            // Generates the points for a single simple cubic unit cell (8 points)
+            function generateUnitCellCPoints() {
                 const points = [];
                 // Add the 8 corner points of a unit cube
                 for (let x = 0; x <= 1; x++) {
@@ -214,8 +254,8 @@
                 return points;
             }
 
-            // This function generates the lattice points for a single Body-Centered Cubic (BCC) unit cell (9 points)
-            function generateCubicIPoints() {
+            // Generates the points for a single Body-Centered Cubic (BCC) unit cell (9 points)
+            function generateUnitCellIPoints() {
                 const points = [];
                 // Add the 8 corner points
                 for (let x = 0; x <= 1; x++) {
@@ -230,11 +270,60 @@
                 return points;
             }
 
+            // Generates the points for a single Face-Centered Cubic (FCC) unit cell (14 points)
+            function generateUnitCellFPoints() {
+                const points = [];
+                // Add the 8 corner points
+                for (let x = 0; x <= 1; x++) {
+                    for (let y = 0; y <= 1; y++) {
+                        for (let z = 0; z <= 1; z++) {
+                            points.push(new THREE.Vector3(x, y, z));
+                        }
+                    }
+                }
+                // Add the 6 face-centered points
+                points.push(new THREE.Vector3(0.5, 0.5, 0)); // Bottom face
+                points.push(new THREE.Vector3(0.5, 0.5, 1)); // Top face
+                points.push(new THREE.Vector3(0.5, 0, 0.5)); // Back face
+                points.push(new THREE.Vector3(0.5, 1, 0.5)); // Front face
+                points.push(new THREE.Vector3(0, 0.5, 0.5)); // Left face
+                points.push(new THREE.Vector3(1, 0.5, 0.5)); // Right face
+                return points;
+            }
+
+            // --- Expanded Lattice Generation Function ---
+            // This function takes the points of a single unit cell and expands them
+            function generateFullLattice(unitCellPoints, numX, numY, numZ) {
+                const fullLatticePoints = [];
+                for (let i = 0; i < numX; i++) {
+                    for (let j = 0; j < numY; j++) {
+                        for (let k = 0; k < numZ; k++) {
+                            unitCellPoints.forEach(point => {
+                                // Add a new lattice point by translating the unit cell point
+                                fullLatticePoints.push(
+                                    new THREE.Vector3(
+                                        point.x + i,
+                                        point.y + j,
+                                        point.z + k
+                                    )
+                                );
+                            });
+                        }
+                    }
+                }
+                return fullLatticePoints;
+            }
+
             // --- Main Rendering Function ---
             // This function renders the atoms based on the lattice points and the basis
-            function renderCrystalStructure(latticePoints, basis) {
+            function renderCrystalStructure(latticePoints, basis, numX, numY, numZ) {
                 clearScene(); // Clear any objects from the previous render
                 
+                // Calculate offset to center the entire lattice
+                const offsetX = (numX - 1) / 2;
+                const offsetY = (numY - 1) / 2;
+                const offsetZ = (numZ - 1) / 2;
+
                 // For each lattice point...
                 latticePoints.forEach(latticePoint => {
                     // ...and for each atom in the basis...
@@ -243,12 +332,11 @@
                         const material = new THREE.MeshPhongMaterial({ color: atom.color, emissive: new THREE.Color(atom.color).multiplyScalar(0.2) });
                         const sphere = new THREE.Mesh(geometry, material);
 
-                        // Calculate the final position by adding the basis offset to the lattice point's coordinates
-                        // The `(0.5, 0.5, 0.5)` offset centers the unit cell at the origin
+                        // Calculate the final position by adding the basis offset and centering the whole structure
                         sphere.position.set(
-                            (latticePoint.x - 0.5) * spacing + atom.x * spacing,
-                            (latticePoint.y - 0.5) * spacing + atom.y * spacing,
-                            (latticePoint.z - 0.5) * spacing + atom.z * spacing
+                            (latticePoint.x - offsetX) * spacing + atom.x * spacing,
+                            (latticePoint.y - offsetY) * spacing + atom.y * spacing,
+                            (latticePoint.z - offsetZ) * spacing + atom.z * spacing
                         );
                         
                         scene.add(sphere);
@@ -257,9 +345,20 @@
                 });
             }
 
-            // --- Default Basis for Bravais Lattice view ---
-            // A simple basis with one atom at the origin (0,0,0)
-            const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#8888ff' }];
+            // --- Main Render Orchestration Function ---
+            // This function gets the necessary data and triggers the render
+            function renderCurrentLattice() {
+                const numX = Math.max(1, parseInt(numXInput.value, 10) || 1);
+                const numY = Math.max(1, parseInt(numYInput.value, 10) || 1);
+                const numZ = Math.max(1, parseInt(numZInput.value, 10) || 1);
+                
+                // The current unit cell points are generated by the active generator function
+                const unitCellPoints = currentLatticeGenerator();
+                const latticePoints = generateFullLattice(unitCellPoints, numX, numY, numZ);
+
+                const defaultBravaisBasis = [{ x: 0, y: 0, z: 0, color: '#8888ff' }];
+                renderCrystalStructure(latticePoints, defaultBravaisBasis, numX, numY, numZ);
+            }
 
             // --- UI and Event Listeners for Tabs ---
             function showSection(sectionId) {
@@ -291,22 +390,32 @@
                 setActiveNavButton('unitCellBtn');
             });
             
-            // Event listener for the new Simple Cubic button
+            // Event listener for the Cubic C button
             cubicCBtn.addEventListener('click', () => {
-                const latticePoints = generateCubicCPoints();
-                renderCrystalStructure(latticePoints, defaultBravaisBasis);
+                currentLatticeGenerator = generateUnitCellCPoints;
+                renderCurrentLattice();
             });
             
-            // Event listener for the new Body-Centered Cubic button
+            // Event listener for the Cubic I button
             cubicIBtn.addEventListener('click', () => {
-                const latticePoints = generateCubicIPoints();
-                renderCrystalStructure(latticePoints, defaultBravaisBasis);
+                currentLatticeGenerator = generateUnitCellIPoints;
+                renderCurrentLattice();
             });
 
+            // Event listener for the new Cubic F button
+            cubicFBtn.addEventListener('click', () => {
+                currentLatticeGenerator = generateUnitCellFPoints;
+                renderCurrentLattice();
+            });
+
+            // Event listeners for the unit cell count inputs
+            numXInput.addEventListener('input', renderCurrentLattice);
+            numYInput.addEventListener('input', renderCurrentLattice);
+            numZInput.addEventListener('input', renderCurrentLattice);
+
+
             // --- Initial render on page load ---
-            // Render a simple cubic lattice by default
-            const initialLatticePoints = generateCubicCPoints();
-            renderCrystalStructure(initialLatticePoints, defaultBravaisBasis);
+            renderCurrentLattice();
 
 
             // --- Interaction (Mouse & Touch) ---
