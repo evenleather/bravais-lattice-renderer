@@ -121,7 +121,8 @@
         <!-- Bravais Lattice content section -->
         <div id="bravaisSection" class="menu-section active">
             <h2>Bravais Lattice</h2>
-            <button id="simpleCubicBtn" class="menu-button">Simple Cubic</button>
+            <button id="cubicCBtn" class="menu-button">Cubic C</button>
+            <button id="cubicIBtn" class="menu-button">Cubic I</button>
         </div>
 
         <!-- Basis content section -->
@@ -157,7 +158,8 @@
             const basisSection = document.getElementById('basisSection');
             const unitCellSection = document.getElementById('unitCellSection');
             const rendererContainer = document.getElementById('rendererContainer');
-            const simpleCubicBtn = document.getElementById('simpleCubicBtn');
+            const cubicCBtn = document.getElementById('cubicCBtn');
+            const cubicIBtn = document.getElementById('cubicIBtn');
 
             // --- Scene Setup ---
             const scene = new THREE.Scene();
@@ -199,7 +201,7 @@
 
             // --- Lattice Point Generation Functions ---
             // This function generates the list of lattice points for a simple cubic structure
-            function generateSimpleCubicPoints() {
+            function generateCubicCPoints() {
                 const gridSize = 5;
                 const points = [];
                 for (let x = -gridSize; x <= gridSize; x++) {
@@ -207,6 +209,23 @@
                         for (let z = -gridSize; z <= gridSize; z++) {
                             // Create a new THREE.Vector3 at each grid point
                             points.push(new THREE.Vector3(x * spacing, y * spacing, z * spacing));
+                        }
+                    }
+                }
+                return points;
+            }
+
+            // This function generates the lattice points for a Body-Centered Cubic (BCC) structure
+            function generateCubicIPoints() {
+                const gridSize = 5;
+                const points = [];
+                for (let x = -gridSize; x <= gridSize; x++) {
+                    for (let y = -gridSize; y <= gridSize; y++) {
+                        for (let z = -gridSize; z <= gridSize; z++) {
+                            // Add the point at the corner
+                            points.push(new THREE.Vector3(x * spacing, y * spacing, z * spacing));
+                            // Add the point at the center of the cell
+                            points.push(new THREE.Vector3((x + 0.5) * spacing, (y + 0.5) * spacing, (z + 0.5) * spacing));
                         }
                     }
                 }
@@ -274,14 +293,20 @@
             });
             
             // Event listener for the new Simple Cubic button
-            simpleCubicBtn.addEventListener('click', () => {
-                const latticePoints = generateSimpleCubicPoints();
+            cubicCBtn.addEventListener('click', () => {
+                const latticePoints = generateCubicCPoints();
+                renderCrystalStructure(latticePoints, defaultBravaisBasis);
+            });
+            
+            // Event listener for the new Body-Centered Cubic button
+            cubicIBtn.addEventListener('click', () => {
+                const latticePoints = generateCubicIPoints();
                 renderCrystalStructure(latticePoints, defaultBravaisBasis);
             });
 
             // --- Initial render on page load ---
             // Render a simple cubic lattice by default
-            const initialLatticePoints = generateSimpleCubicPoints();
+            const initialLatticePoints = generateCubicCPoints();
             renderCrystalStructure(initialLatticePoints, defaultBravaisBasis);
 
 
