@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basic 3D Renderer</title>
+    <title>Basic 3D Renderer with Menu</title>
     <style>
         body {
             margin: 0;
@@ -11,10 +11,73 @@
             font-family: 'Inter', sans-serif;
             background-color: #1a1a1a;
             color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; /* Use flexbox for the two-column layout */
             height: 100vh;
+        }
+
+        /* Styles for the left-hand menu */
+        .menu-panel {
+            width: 25%; /* Occupies 1/4 of the screen width */
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-sizing: border-box; /* Include padding in the width */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+        
+        .menu-panel h2 {
+            margin: 0;
+            padding: 0;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+
+        /* Styles for the tab navigation buttons */
+        .menu-nav-button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-nav-button {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid #555;
+            background-color: #333;
+            color: #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        .menu-nav-button.active {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+        
+        .menu-nav-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Styles for the menu sections that hold content for each tab */
+        .menu-section {
+            display: none; /* Hide sections by default */
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-section.active {
+            display: flex; /* Show the active section */
+        }
+
+        /* Styles for the right-hand renderer container */
+        .renderer-container {
+            width: 75%; /* Occupies 3/4 of the screen width */
+            position: relative;
         }
 
         canvas {
@@ -40,6 +103,39 @@
 </head>
 <body>
 
+    <!-- Left-hand menu panel -->
+    <div class="menu-panel">
+        <!-- Tab navigation buttons -->
+        <div class="menu-nav-button-container">
+            <button id="bravaisBtn" class="menu-nav-button active">Bravais Lattice</button>
+            <button id="basisBtn" class="menu-nav-button">Basis</button>
+            <button id="unitCellBtn" class="menu-nav-button">Unit Cell</button>
+        </div>
+
+        <!-- Bravais Lattice content section -->
+        <div id="bravaisSection" class="menu-section active">
+            <h2>Bravais Lattice</h2>
+            <!-- No content needed here yet -->
+        </div>
+
+        <!-- Basis content section -->
+        <div id="basisSection" class="menu-section">
+            <h2>Basis</h2>
+            <!-- No content needed here yet -->
+        </div>
+
+        <!-- Unit Cell content section -->
+        <div id="unitCellSection" class="menu-section">
+            <h2>Unit Cell</h2>
+            <!-- No content needed here yet -->
+        </div>
+    </div>
+
+    <!-- Right-hand renderer container -->
+    <div class="renderer-container" id="rendererContainer">
+        <!-- The canvas will be appended here by the JavaScript -->
+    </div>
+
     <div class="info-panel">
         <p style="margin: 0;">**Controls**</p>
         <ul style="list-style-type: none; padding: 0; margin: 5px 0 0 0;">
@@ -57,27 +153,32 @@
         // Use window.onload to ensure the entire page and its resources are loaded before running the script
         window.onload = function() {
 
+            // Get all relevant DOM elements
+            const bravaisBtn = document.getElementById('bravaisBtn');
+            const basisBtn = document.getElementById('basisBtn');
+            const unitCellBtn = document.getElementById('unitCellBtn');
+            const bravaisSection = document.getElementById('bravaisSection');
+            const basisSection = document.getElementById('basisSection');
+            const unitCellSection = document.getElementById('unitCellSection');
+            const rendererContainer = document.getElementById('rendererContainer');
+
             // --- Scene Setup ---
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a1a); // Dark background
 
             // --- Camera Setup ---
-            // PerspectiveCamera(fov, aspect, near, far)
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const camera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
             camera.position.z = 5; // Set the initial camera position
 
             // --- Renderer Setup ---
             const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            document.body.appendChild(renderer.domElement);
+            rendererContainer.appendChild(renderer.domElement);
 
             // --- Lighting ---
-            // Add an ambient light to illuminate all objects equally
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
-
-            // Add a point light to cast shadows and provide a directional feel
             const pointLight = new THREE.PointLight(0xffffff, 1);
             pointLight.position.set(10, 10, 10);
             scene.add(pointLight);
@@ -88,6 +189,36 @@
             const cube = new THREE.Mesh(geometry, material);
             scene.add(cube);
 
+            // --- UI and Event Listeners for Tabs ---
+            function showSection(sectionId) {
+                bravaisSection.classList.remove('active');
+                basisSection.classList.remove('active');
+                unitCellSection.classList.remove('active');
+                document.getElementById(sectionId).classList.add('active');
+            }
+
+            function setActiveNavButton(buttonId) {
+                bravaisBtn.classList.remove('active');
+                basisBtn.classList.remove('active');
+                unitCellBtn.classList.remove('active');
+                document.getElementById(buttonId).classList.add('active');
+            }
+
+            bravaisBtn.addEventListener('click', () => {
+                showSection('bravaisSection');
+                setActiveNavButton('bravaisBtn');
+            });
+
+            basisBtn.addEventListener('click', () => {
+                showSection('basisSection');
+                setActiveNavButton('basisBtn');
+            });
+            
+            unitCellBtn.addEventListener('click', () => {
+                showSection('unitCellSection');
+                setActiveNavButton('unitCellBtn');
+            });
+
             // --- Interaction (Mouse & Touch) ---
             let isDragging = false;
             let isPanning = false;
@@ -95,21 +226,18 @@
             const rotationSpeed = 0.005;
             const panSpeed = 0.01;
 
-            // Mouse down event
             renderer.domElement.addEventListener('mousedown', (event) => {
                 isDragging = true;
-                isPanning = event.shiftKey; // Check if the Shift key is held down
+                isPanning = event.shiftKey;
                 previousMousePosition.x = event.clientX;
                 previousMousePosition.y = event.clientY;
             });
 
-            // Mouse up event
             renderer.domElement.addEventListener('mouseup', () => {
                 isDragging = false;
                 isPanning = false;
             });
 
-            // Mouse move event for rotation and panning
             renderer.domElement.addEventListener('mousemove', (event) => {
                 if (isDragging) {
                     const deltaMove = {
@@ -118,11 +246,9 @@
                     };
 
                     if (isPanning) {
-                        // Pan the camera
                         const vector = new THREE.Vector3(-deltaMove.x * panSpeed, deltaMove.y * panSpeed, 0);
                         camera.position.add(vector);
                     } else {
-                        // Rotate the scene
                         const rotationY = deltaMove.x * rotationSpeed;
                         const rotationX = deltaMove.y * rotationSpeed;
                         scene.rotation.y += rotationY;
@@ -134,24 +260,20 @@
                 }
             });
 
-            // Mouse wheel event for zooming
             renderer.domElement.addEventListener('wheel', (event) => {
                 const zoomSpeed = 0.1;
                 camera.position.z += event.deltaY * zoomSpeed;
                 camera.position.z = Math.max(1, Math.min(100, camera.position.z));
             });
             
-            // --- Touch Interaction ---
             renderer.domElement.addEventListener('touchstart', (event) => {
                 if (event.touches.length === 1) {
                     isDragging = true;
-                    isPanning = false; // Simple touch is for rotation
+                    isPanning = false;
                     previousMousePosition.x = event.touches[0].clientX;
                     previousMousePosition.y = event.touches[0].clientY;
                 } else if (event.touches.length === 2) {
                     isPanning = true;
-                    // You would calculate the initial distance for zooming
-                    // ... this is a more advanced topic for later.
                 }
             });
 
@@ -166,12 +288,10 @@
                         x: event.touches[0].clientX - previousMousePosition.x,
                         y: event.touches[0].clientY - previousMousePosition.y,
                     };
-
                     const rotationY = deltaMove.x * rotationSpeed;
                     const rotationX = deltaMove.y * rotationSpeed;
                     scene.rotation.y += rotationY;
                     scene.rotation.x += rotationX;
-
                     previousMousePosition.x = event.touches[0].clientX;
                     previousMousePosition.y = event.touches[0].clientY;
                 }
@@ -179,9 +299,11 @@
 
             // --- Responsiveness ---
             window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
+                const newWidth = rendererContainer.clientWidth;
+                const newHeight = rendererContainer.clientHeight;
+                camera.aspect = newWidth / newHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(newWidth, newHeight);
             });
 
             // --- Animation Loop ---
