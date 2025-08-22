@@ -154,9 +154,19 @@
         .atom-item {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
             margin-bottom: 5px;
             font-size: 14px;
+            padding: 5px;
+            border-radius: 4px;
+            background-color: #444;
+        }
+
+        .atom-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .atom-dot {
@@ -164,6 +174,21 @@
             height: 15px;
             border-radius: 50%;
             border: 2px solid #fff;
+        }
+
+        .remove-atom-btn {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+
+        .remove-atom-btn:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -205,6 +230,10 @@
             <button id="clearBasisBtn" class="menu-button" style="background-color: #dc3545;">Clear Basis</button>
             
             <h3>Current Basis</h3>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showBasisLinesCheckbox">
+                <label for="showBasisLinesCheckbox">Show Basis Lines</label>
+            </div>
             <div id="atomList" class="atom-list">
                 <!-- Atom list items will be dynamically added here -->
             </div>
@@ -273,6 +302,7 @@
             const addAtomBtn = document.getElementById('addAtomBtn');
             const clearBasisBtn = document.getElementById('clearBasisBtn');
             const atomListDiv = document.getElementById('atomList');
+            const showBasisLinesCheckbox = document.getElementById('showBasisLinesCheckbox');
 
 
             // --- Scene Setup ---
@@ -526,6 +556,47 @@
                 });
             }
 
+            // --- Function to add lines between basis atoms ---
+            function addBasisLines(latticePoints, basis, numX, numY, numZ) {
+                if (basis.length < 2) return; // Need at least two atoms to draw a line
+                
+                const linePoints = [];
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x888888 }); // A subtle gray color
+                
+                // Calculate offset to center the entire lattice
+                const offsetX = (numX - 1) / 2;
+                const offsetY = (numY - 1) / 2;
+                const offsetZ = (numZ - 1) / 2;
+
+                latticePoints.forEach(latticePoint => {
+                    for (let i = 0; i < basis.length; i++) {
+                        for (let j = i + 1; j < basis.length; j++) {
+                            const start = basis[i];
+                            const end = basis[j];
+
+                            // Calculate the translated positions for each lattice point
+                            const translatedStart = new THREE.Vector3(
+                                (latticePoint.x - offsetX) * spacing + start.x * spacing,
+                                (latticePoint.y - offsetY) * spacing + start.y * spacing,
+                                (latticePoint.z - offsetZ) * spacing + start.z * spacing
+                            );
+                            const translatedEnd = new THREE.Vector3(
+                                (latticePoint.x - offsetX) * spacing + end.x * spacing,
+                                (latticePoint.y - offsetY) * spacing + end.y * spacing,
+                                (latticePoint.z - offsetZ) * spacing + end.z * spacing
+                            );
+
+                            linePoints.push(translatedStart, translatedEnd);
+                        }
+                    }
+                });
+
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+                scene.add(lines);
+                currentObjects.push(lines);
+            }
+
             // --- Render a single unit cell and its basis ---
             function renderBasisOnly() {
                 clearScene(); // Clear existing objects
@@ -536,6 +607,11 @@
                 
                 // Render the atoms in the basis
                 renderCrystalStructure([new THREE.Vector3(0, 0, 0)], currentBasis, 1, 1, 1);
+
+                // Add lines if the checkbox is checked and we are in the basis tab
+                if (showBasisLinesCheckbox.checked) {
+                    addBasisLines([new THREE.Vector3(0, 0, 0)], currentBasis, 1, 1, 1);
+                }
             }
 
             // --- Main Render Orchestration Function ---
@@ -551,12 +627,12 @@
 
                 renderCrystalStructure(latticePoints, currentBasis, numX, numY, numZ);
                 
-                // Add lines if the checkbox is checked
+                // Add unit cell lines if the checkbox is checked
                 if (showLinesCheckbox.checked) {
                     addUnitCellLines(numX, numY, numZ);
                 }
                 
-                // Add faces if the checkbox is checked
+                // Add unit cell faces if the checkbox is checked
                 if (showFacesCheckbox.checked) {
                     addUnitCellFaces(numX, numY, numZ);
                 }
@@ -569,12 +645,15 @@
                     atomListDiv.innerHTML = '<p>No atoms added yet.</p>';
                     return;
                 }
-                currentBasis.forEach(atom => {
+                currentBasis.forEach((atom, index) => {
                     const item = document.createElement('div');
                     item.className = 'atom-item';
                     item.innerHTML = `
-                        <span class="atom-dot" style="background-color: ${atom.color};"></span>
-                        <span>(${atom.x}, ${atom.y}, ${atom.z})</span>
+                        <div class="atom-item-info">
+                            <span class="atom-dot" style="background-color: ${atom.color};"></span>
+                            <span>(${atom.x}, ${atom.y}, ${atom.z})</span>
+                        </div>
+                        <button class="remove-atom-btn" data-index="${index}">Remove</button>
                     `;
                     atomListDiv.appendChild(item);
                 });
@@ -598,13 +677,13 @@
             bravaisBtn.addEventListener('click', () => {
                 showSection('bravaisSection');
                 setActiveNavButton('bravaisBtn');
-                renderCurrentLattice();
+                renderCurrentLattice(); // This function does not render basis lines
             });
 
             basisBtn.addEventListener('click', () => {
                 showSection('basisSection');
                 setActiveNavButton('basisBtn');
-                renderBasisOnly();
+                renderBasisOnly(); // This function handles rendering basis lines
             });
             
             unitCellBtn.addEventListener('click', () => {
@@ -660,12 +739,36 @@
                 }
             });
 
+            // New event listener for removing an individual atom
+            atomListDiv.addEventListener('click', (event) => {
+                if (event.target.classList.contains('remove-atom-btn')) {
+                    const index = parseInt(event.target.dataset.index, 10);
+                    currentBasis.splice(index, 1);
+                    updateBasisDisplay();
+                    if (basisSection.classList.contains('active')) {
+                        renderBasisOnly();
+                    } else {
+                        renderCurrentLattice();
+                    }
+                }
+            });
+
             // Event listeners for the unit cell count inputs
             numXInput.addEventListener('input', renderCurrentLattice);
             numYInput.addEventListener('input', renderCurrentLattice);
             numZInput.addEventListener('input', renderCurrentLattice);
             showLinesCheckbox.addEventListener('change', renderCurrentLattice);
             showFacesCheckbox.addEventListener('change', renderCurrentLattice);
+
+            // New event listener for the basis lines checkbox
+            showBasisLinesCheckbox.addEventListener('change', () => {
+                if (basisSection.classList.contains('active')) {
+                    renderBasisOnly();
+                } else {
+                    // Re-render the lattice without basis lines
+                    renderCurrentLattice(); 
+                }
+            });
 
 
             // --- Initial render on page load ---
