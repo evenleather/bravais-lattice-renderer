@@ -167,7 +167,7 @@
 
             // --- Camera Setup ---
             const camera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
-            camera.position.z = 15; // Set the initial camera position, moved back to see more of the lattice
+            camera.position.z = 5; // Set the initial camera position, moved back to see more of the lattice
 
             // --- Renderer Setup ---
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -200,35 +200,33 @@
             }
 
             // --- Lattice Point Generation Functions ---
-            // This function generates the list of lattice points for a simple cubic structure
+            // This function generates the lattice points for a single simple cubic unit cell (8 points)
             function generateCubicCPoints() {
-                const gridSize = 5;
                 const points = [];
-                for (let x = -gridSize; x <= gridSize; x++) {
-                    for (let y = -gridSize; y <= gridSize; y++) {
-                        for (let z = -gridSize; z <= gridSize; z++) {
-                            // Create a new THREE.Vector3 at each grid point
-                            points.push(new THREE.Vector3(x * spacing, y * spacing, z * spacing));
+                // Add the 8 corner points of a unit cube
+                for (let x = 0; x <= 1; x++) {
+                    for (let y = 0; y <= 1; y++) {
+                        for (let z = 0; z <= 1; z++) {
+                            points.push(new THREE.Vector3(x, y, z));
                         }
                     }
                 }
                 return points;
             }
 
-            // This function generates the lattice points for a Body-Centered Cubic (BCC) structure
+            // This function generates the lattice points for a single Body-Centered Cubic (BCC) unit cell (9 points)
             function generateCubicIPoints() {
-                const gridSize = 5;
                 const points = [];
-                for (let x = -gridSize; x <= gridSize; x++) {
-                    for (let y = -gridSize; y <= gridSize; y++) {
-                        for (let z = -gridSize; z <= gridSize; z++) {
-                            // Add the point at the corner
-                            points.push(new THREE.Vector3(x * spacing, y * spacing, z * spacing));
-                            // Add the point at the center of the cell
-                            points.push(new THREE.Vector3((x + 0.5) * spacing, (y + 0.5) * spacing, (z + 0.5) * spacing));
+                // Add the 8 corner points
+                for (let x = 0; x <= 1; x++) {
+                    for (let y = 0; y <= 1; y++) {
+                        for (let z = 0; z <= 1; z++) {
+                            points.push(new THREE.Vector3(x, y, z));
                         }
                     }
                 }
+                // Add the single body-centered point
+                points.push(new THREE.Vector3(0.5, 0.5, 0.5));
                 return points;
             }
 
@@ -246,10 +244,11 @@
                         const sphere = new THREE.Mesh(geometry, material);
 
                         // Calculate the final position by adding the basis offset to the lattice point's coordinates
+                        // The `(0.5, 0.5, 0.5)` offset centers the unit cell at the origin
                         sphere.position.set(
-                            latticePoint.x + atom.x * spacing,
-                            latticePoint.y + atom.y * spacing,
-                            latticePoint.z + atom.z * spacing
+                            (latticePoint.x - 0.5) * spacing + atom.x * spacing,
+                            (latticePoint.y - 0.5) * spacing + atom.y * spacing,
+                            (latticePoint.z - 0.5) * spacing + atom.z * spacing
                         );
                         
                         scene.add(sphere);
