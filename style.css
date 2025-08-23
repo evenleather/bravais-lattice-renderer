@@ -1,0 +1,12 @@
+/*
+ * This file contains the styles for the 3D renderer.
+ * Separating CSS from HTML makes it easier to manage the look and feel.
+ */
+body {
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars from appearing */
+    background-color: #222;
+}
+canvas {
+    display: block; /* Ensures the canvas is a block element and fits the container */
+}
