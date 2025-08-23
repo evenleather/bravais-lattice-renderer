@@ -3,19 +3,24 @@ window.onload = function() {
 
     // --- Scene Setup ---
 
+    // Get the dimensions of the renderer container.
+    const rendererContainer = document.getElementById('renderer-container');
+    const containerWidth = rendererContainer.clientWidth;
+    const containerHeight = rendererContainer.clientHeight;
+
     // A Scene is a container for all objects, lights, and cameras.
     const scene = new THREE.Scene();
 
     // The Camera defines the viewing frustum, determining what is rendered.
-    // Parameters: Field of View (FoV), Aspect Ratio, Near plane, Far plane.
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    // Use the container's aspect ratio.
+    const camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 1000);
 
     // The Renderer handles displaying the scene on the screen.
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(containerWidth, containerHeight);
 
-    // Add the renderer's canvas to the HTML document.
-    document.body.appendChild(renderer.domElement);
+    // Add the renderer's canvas to the dedicated container.
+    rendererContainer.appendChild(renderer.domElement);
 
 
     // --- Create a 3D Object (a cube) ---
@@ -70,8 +75,13 @@ window.onload = function() {
 
     // This event listener ensures the scene remains responsive when the window size changes.
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        // Update the camera's aspect ratio based on the new container size.
+        const newContainerWidth = rendererContainer.clientWidth;
+        const newContainerHeight = rendererContainer.clientHeight;
+        camera.aspect = newContainerWidth / newContainerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Update the renderer's size to match the new container.
+        renderer.setSize(newContainerWidth, newContainerHeight);
     });
 };
