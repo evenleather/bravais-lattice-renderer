@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Lattice and Basis Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex; /* Use flexbox for the two-column layout */
+            height: 100vh;
+        }
+
+        /* Styles for the left-hand menu */
+        .menu-panel {
+            width: 25%; /* Occupies 1/4 of the screen width */
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-sizing: border-box; /* Include padding in the width */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto; /* Enable scrolling for the menu content */
+        }
+
+        /* Styles for the tab navigation buttons */
+        .menu-nav-button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-nav-button {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid #555;
+            background-color: #333;
+            color: #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        .menu-nav-button.active {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+        
+        .menu-nav-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Styles for the control panels */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+        }
+
+        .controls-panel.hidden {
+            display: none;
+        }
+
+        .controls-panel h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #fff;
+            border-bottom: 1px solid #555;
+            padding-bottom: 8px;
+        }
+
+        /* Streamlined input group for a and b */
+        .param-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .param-group .input-group {
+            flex-grow: 1;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 0.9em;
+            color: #ddd;
+            flex-shrink: 0;
+        }
+
+        .input-group input, .input-group select {
+            background-color: #1a1a1a;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Styles for the right-hand renderer containers */
+        .renderer-container {
+            width: 75%; /* Occupies 3/4 of the screen width */
+            position: relative;
+        }
+
+        .renderer-container.hidden {
+            display: none;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none; /* Prevent default touch behavior */
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left-hand menu panel -->
+    <div class="menu-panel">
+        <!-- Tab navigation buttons -->
+        <div class="menu-nav-button-container">
+            <button id="bravaisBtn" class="menu-nav-button active">Bravais Lattice</button>
+            <button id="unitCellBtn" class="menu-nav-button">Unit Cell</button>
+            <button id="basisBtn" class="menu-nav-button">Basis</button>
+        </div>
+
+        <!-- Bravais Lattice Controls Panel -->
+        <div id="bravaisLatticeControls" class="controls-panel">
+            <h3>Lattice Parameters</h3>
+            <div class="param-group">
+                <div class="input-group">
+                    <label for="a">a</label>
+                    <input type="number" id="a" value="10">
+                </div>
+                <div class="input-group">
+                    <label for="b">b</label>
+                    <input type="number" id="b" value="10">
+                </div>
+                <div class="input-group">
+                    <label for="c">c</label>
+                    <input type="number" id="c" value="10">
+                </div>
+            </div>
+            <div class="param-group">
+                <div class="input-group">
+                    <label for="alpha">$\alpha$</label>
+                    <input type="number" id="alpha" value="90">
+                </div>
+                <div class="input-group">
+                    <label for="beta">$\beta$</label>
+                    <input type="number" id="beta" value="90">
+                </div>
+                <div class="input-group">
+                    <label for="gamma">$\gamma$</label>
+                    <input type="number" id="gamma" value="90">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="centering">Centering Type</label>
+                <select id="centering">
+                    <option value="P">P (Primitive)</option>
+                    <option value="C">C (Base-centered)</option>
+                    <option value="I">I (Body-centered)</option>
+                    <option value="F">F (Face-centered)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Unit Cell Controls Panel (hidden for now) -->
+        <div id="unitCellControls" class="controls-panel hidden">
+            <h3>Unit Cell Controls</h3>
+            <!-- Placeholder for unit cell controls later -->
+            <p>This panel will contain controls specific to the Unit Cell view.</p>
+        </div>
+        
+        <!-- Basis Controls Panel (hidden for now) -->
+        <div id="basisControls" class="controls-panel hidden">
+            <h3>Basis Controls</h3>
+            <!-- Placeholder for basis controls later -->
+            <p>This panel will contain controls for the basis atoms.</p>
+        </div>
+    </div>
+
+    <!-- Right-hand renderer containers -->
+    <div class="renderer-container" id="mainRendererContainer">
+        <!-- The main canvas will be appended here by the JavaScript -->
+    </div>
+    <div class="renderer-container hidden" id="basisRendererContainer">
+        <!-- The basis canvas will be appended here -->
+    </div>
+
+    <!-- The script tag for Three.js must be loaded first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Use window.onload to ensure the entire page and its resources are loaded before running the script
+        window.onload = function() {
+            // Get all relevant DOM elements
+            const bravaisBtn = document.getElementById('bravaisBtn');
+            const basisBtn = document.getElementById('basisBtn');
+            const unitCellBtn = document.getElementById('unitCellBtn');
+            const mainRendererContainer = document.getElementById('mainRendererContainer');
+            const basisRendererContainer = document.getElementById('basisRendererContainer');
+            const bravaisLatticeControls = document.getElementById('bravaisLatticeControls');
+            const unitCellControls = document.getElementById('unitCellControls');
+            const basisControls = document.getElementById('basisControls');
+
+            // --- Scene 1 (Main) Setup ---
+            const mainScene = new THREE.Scene();
+            mainScene.background = new THREE.Color(0x1a1a1a);
+            const mainCamera = new THREE.PerspectiveCamera(75, mainRendererContainer.clientWidth / mainRendererContainer.clientHeight, 0.1, 1000);
+            mainCamera.position.z = 5;
+            const mainRenderer = new THREE.WebGLRenderer({ antialias: true });
+            mainRenderer.setPixelRatio(window.devicePixelRatio);
+            mainRendererContainer.appendChild(mainRenderer.domElement);
+
+            // Add a TorusKnot to the main scene
+            const geometry1 = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+            const material1 = new THREE.MeshPhongMaterial({ color: 0x007bff, shininess: 100 });
+            const torusKnot1 = new THREE.Mesh(geometry1, material1);
+            mainScene.add(torusKnot1);
+
+            // Add lighting to the main scene
+            const ambientLight1 = new THREE.AmbientLight(0xffffff, 0.5);
+            mainScene.add(ambientLight1);
+            const pointLight1 = new THREE.PointLight(0xffffff, 1);
+            pointLight1.position.set(5, 5, 5);
+            mainScene.add(pointLight1);
+
+
+            // --- Scene 2 (Basis) Setup ---
+            const basisScene = new THREE.Scene();
+            basisScene.background = new THREE.Color(0x1a1a1a);
+            const basisCamera = new THREE.PerspectiveCamera(75, basisRendererContainer.clientWidth / basisRendererContainer.clientHeight, 0.1, 1000);
+            basisCamera.position.z = 5;
+            const basisRenderer = new THREE.WebGLRenderer({ antialias: true });
+            basisRenderer.setPixelRatio(window.devicePixelRatio);
+            basisRendererContainer.appendChild(basisRenderer.domElement);
+            
+            // Add a different object to the basis scene for visual distinction
+            const geometry2 = new THREE.IcosahedronGeometry(1, 0);
+            const material2 = new THREE.MeshPhongMaterial({ color: 0xff8800, shininess: 100 });
+            const icosahedron = new THREE.Mesh(geometry2, material2);
+            basisScene.add(icosahedron);
+
+            // Add lighting to the basis scene
+            const ambientLight2 = new THREE.AmbientLight(0xffffff, 0.5);
+            basisScene.add(ambientLight2);
+            const pointLight2 = new THREE.PointLight(0xffffff, 1);
+            pointLight2.position.set(5, 5, 5);
+            basisScene.add(pointLight2);
+
+
+            // --- Reusable Interaction Function ---
+            // This function encapsulates the interaction logic for any given canvas, scene, and camera
+            function setupInteraction(canvas, scene, camera) {
+                let isDragging = false;
+                let isPanning = false;
+                let previousMousePosition = { x: 0, y: 0 };
+                const rotationSpeed = 0.005;
+                const panSpeed = 0.01;
+                const zoomSpeed = 0.01;
+                
+                canvas.addEventListener('mousedown', (event) => {
+                    isDragging = true;
+                    isPanning = event.shiftKey;
+                    previousMousePosition = { x: event.clientX, y: event.clientY };
+                });
+                
+                window.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    isPanning = false;
+                });
+                
+                window.addEventListener('mousemove', (event) => {
+                    if (isDragging) {
+                        const deltaMove = {
+                            x: event.clientX - previousMousePosition.x,
+                            y: event.clientY - previousMousePosition.y,
+                        };
+                        if (isPanning) {
+                            const vector = new THREE.Vector3(-deltaMove.x * panSpeed, deltaMove.y * panSpeed, 0);
+                            camera.position.add(vector);
+                        } else {
+                            scene.rotation.y += deltaMove.x * rotationSpeed;
+                            scene.rotation.x += deltaMove.y * rotationSpeed;
+                        }
+                        previousMousePosition.x = event.clientX;
+                        previousMousePosition.y = event.clientY;
+                    }
+                });
+
+                canvas.addEventListener('wheel', (event) => {
+                    camera.position.z += event.deltaY * zoomSpeed;
+                    camera.position.z = Math.max(1, Math.min(100, camera.position.z));
+                });
+
+                // Touch events
+                canvas.addEventListener('touchstart', (event) => {
+                    if (event.touches.length === 1) {
+                        isDragging = true;
+                        isPanning = false;
+                        previousMousePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+                    } else if (event.touches.length === 2) {
+                        isPanning = true;
+                    }
+                });
+
+                canvas.addEventListener('touchend', () => {
+                    isDragging = false;
+                    isPanning = false;
+                });
+
+                canvas.addEventListener('touchmove', (event) => {
+                    if (isDragging && event.touches.length === 1) {
+                        const deltaMove = {
+                            x: event.touches[0].clientX - previousMousePosition.x,
+                            y: event.touches[0].clientY - previousMousePosition.y,
+                        };
+                        const rotationY = deltaMove.x * rotationSpeed;
+                        const rotationX = deltaMove.y * rotationSpeed;
+                        scene.rotation.y += rotationY;
+                        scene.rotation.x += rotationX;
+                        previousMousePosition.x = event.touches[0].clientX;
+                        previousMousePosition.y = event.touches[0].clientY;
+                    } else if (isPanning && event.touches.length === 2) {
+                        const touch1 = event.touches[0];
+                        const touch2 = event.touches[1];
+                        
+                        const center = {
+                            x: (touch1.clientX + touch2.clientX) / 2,
+                            y: (touch1.clientY + touch2.clientY) / 2
+                        };
+                        const deltaMove = {
+                            x: center.x - previousMousePosition.x,
+                            y: center.y - previousMousePosition.y
+                        };
+                        
+                        const vector = new THREE.Vector3(-deltaMove.x * panSpeed, deltaMove.y * panSpeed, 0);
+                        camera.position.add(vector);
+                        
+                        previousMousePosition = center;
+                    }
+                });
+            }
+
+            // Apply interaction logic to both renderers
+            setupInteraction(mainRenderer.domElement, mainScene, mainCamera);
+            setupInteraction(basisRenderer.domElement, basisScene, basisCamera);
+
+
+            // --- UI and Event Listeners for Tabs ---
+            function showRendererAndControls(tabId) {
+                // Deactivate all buttons and hide all control panels
+                bravaisBtn.classList.remove('active');
+                basisBtn.classList.remove('active');
+                unitCellBtn.classList.remove('active');
+                bravaisLatticeControls.classList.add('hidden');
+                unitCellControls.classList.add('hidden');
+                basisControls.classList.add('hidden');
+                mainRendererContainer.classList.add('hidden');
+                basisRendererContainer.classList.add('hidden');
+                
+                // Activate the selected button and show the correct panels
+                if (tabId === 'bravaisBtn') {
+                    document.getElementById(tabId).classList.add('active');
+                    bravaisLatticeControls.classList.remove('hidden');
+                    mainRendererContainer.classList.remove('hidden');
+                } else if (tabId === 'unitCellBtn') {
+                    document.getElementById(tabId).classList.add('active');
+                    unitCellControls.classList.remove('hidden');
+                    mainRendererContainer.classList.remove('hidden');
+                } else if (tabId === 'basisBtn') {
+                    document.getElementById(tabId).classList.add('active');
+                    basisControls.classList.remove('hidden');
+                    basisRendererContainer.classList.remove('hidden');
+                }
+
+                // Force a resize to ensure the new canvas is sized correctly
+                onResize();
+            }
+
+            bravaisBtn.addEventListener('click', () => showRendererAndControls('bravaisBtn'));
+            basisBtn.addEventListener('click', () => showRendererAndControls('basisBtn'));
+            unitCellBtn.addEventListener('click', () => showRendererAndControls('unitCellBtn'));
+
+
+            // --- Responsiveness ---
+            function onResize() {
+                // Resize the main renderer
+                const mainWidth = mainRendererContainer.clientWidth;
+                const mainHeight = mainRendererContainer.clientHeight;
+                mainCamera.aspect = mainWidth / mainHeight;
+                mainCamera.updateProjectionMatrix();
+                mainRenderer.setSize(mainWidth, mainHeight);
+                
+                // Resize the basis renderer
+                const basisWidth = basisRendererContainer.clientWidth;
+                const basisHeight = basisRendererContainer.clientHeight;
+                basisCamera.aspect = basisWidth / basisHeight;
+                basisCamera.updateProjectionMatrix();
+                basisRenderer.setSize(basisWidth, basisHeight);
+            }
+            window.addEventListener('resize', onResize);
+
+
+            // --- Animation Loop ---
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Render both scenes (the CSS will ensure only the visible one is seen)
+                mainRenderer.render(mainScene, mainCamera);
+                basisRenderer.render(basisScene, basisCamera);
+            }
+
+            // Initial setup
+            onResize();
+            animate();
+        };
+    </script>
+</body>
+</html>
