@@ -2,11 +2,20 @@
  * This file contains the styles for the 3D renderer.
  * Separating CSS from HTML makes it easier to manage the look and feel.
  */
-body {
+
+/*
+ * Set the html and body elements to take up the full viewport height and width.
+ * This is the key to preventing scrollbars.
+ */
+html, body {
     margin: 0;
-    overflow: hidden; /* Prevent scrollbars from appearing */
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* This property explicitly hides any content that overflows */
     background-color: #222;
 }
+
 canvas {
     display: block; /* Ensures the canvas is a block element and fits the container */
 }
