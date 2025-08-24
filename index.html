@@ -173,27 +173,11 @@
             width: 100%;
         }
 
-        .add-atom-form button {
-            padding: 10px;
-            border: none;
-            background-color: #28a745;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .add-atom-form button:hover {
-            background-color: #218838;
-        }
-
         .color-label {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
-
     </style>
 </head>
 <body>
@@ -213,8 +197,8 @@
             <p>Select a Bravais lattice type to render its base structure.</p>
             <h3>Cubic</h3>
             <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
-            <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I (BCC)</button>
-            <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F (FCC)</button>
+            <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I</button>
+            <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F</button>
             
             <h3>Tetragonal</h3>
             <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
@@ -338,16 +322,78 @@
             basisPointLight.position.set(1, 1, 1);
             basisScene.add(basisPointLight);
 
+            // Create a group for the axes that can be added and removed easily
+            function createAxesGroup() {
+                const axesGroup = new THREE.Group();
+                const axisLength = 5;
+
+                // X-axis (Red)
+                const xPoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(axisLength, 0, 0)];
+                const xMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+                const xGeometry = new THREE.BufferGeometry().setFromPoints(xPoints);
+                const xAxis = new THREE.Line(xGeometry, xMaterial);
+                axesGroup.add(xAxis);
+
+                // Y-axis (Green)
+                const yPoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, axisLength, 0)];
+                const yMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+                const yGeometry = new THREE.BufferGeometry().setFromPoints(yPoints);
+                const yAxis = new THREE.Line(yGeometry, yMaterial);
+                axesGroup.add(yAxis);
+
+                // Z-axis (Blue)
+                const zPoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, axisLength)];
+                const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+                const zGeometry = new THREE.BufferGeometry().setFromPoints(zPoints);
+                const zAxis = new THREE.Line(zGeometry, zMaterial);
+                axesGroup.add(zAxis);
+                
+                // Add labels to the axes using THREE.Sprite
+                const labelCanvas = document.createElement('canvas');
+                const context = labelCanvas.getContext('2d');
+                context.font = 'Bold 20px Arial';
+
+                function createLabelSprite(text, color) {
+                    context.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+                    context.fillStyle = color;
+                    context.fillText(text, 0, 20);
+
+                    const texture = new THREE.CanvasTexture(labelCanvas);
+                    const material = new THREE.SpriteMaterial({ map: texture });
+                    const sprite = new THREE.Sprite(material);
+                    sprite.scale.set(0.5, 0.5, 1); // Adjust size as needed
+                    return sprite;
+                }
+                
+                const xLabel = createLabelSprite('X', '#ff0000');
+                xLabel.position.set(axisLength, 0, 0);
+                axesGroup.add(xLabel);
+
+                const yLabel = createLabelSprite('Y', '#00ff00');
+                yLabel.position.set(0, axisLength, 0);
+                axesGroup.add(yLabel);
+
+                const zLabel = createLabelSprite('Z', '#0000ff');
+                zLabel.position.set(0, 0, axisLength);
+                axesGroup.add(zLabel);
+
+                return axesGroup;
+            }
+
             const latticeGroup = new THREE.Group();
             scene.add(latticeGroup);
             // Rotate the main lattice to have z-axis vertical
             latticeGroup.rotation.x = -Math.PI / 2;
+            const latticeAxesGroup = createAxesGroup();
+            latticeGroup.add(latticeAxesGroup);
 
             const basisLatticeGroup = new THREE.Group();
             basisScene.add(basisLatticeGroup);
             // Rotate the basis unit cell to have z-axis vertical
             basisLatticeGroup.rotation.x = -Math.PI / 2;
-            
+            const basisAxesGroup = createAxesGroup();
+            basisLatticeGroup.add(basisAxesGroup);
+
             // --- Basis Data and State ---
             // The basis is now a mutable array of atom objects
             // Starting with a two-atom basis to demonstrate the functionality
@@ -382,6 +428,7 @@
 
             // --- Rendering Functions ---
             function clearGroup(group) {
+                // Remove all children from a group, but a more robust way is to just remove and then re-add everything.
                 while(group.children.length > 0) {
                     const child = group.children[0];
                     group.remove(child);
@@ -403,8 +450,10 @@
             }
             
             function renderLattice(data, shouldRenderFaces, latticeType) {
+                // Clear all children from the group and then re-add the axes
                 clearGroup(latticeGroup);
-                
+                latticeGroup.add(latticeAxesGroup);
+
                 const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
 
                 const { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = data;
@@ -503,7 +552,10 @@
 
             // Function to render the atoms for the basis scene
             function renderBasis() {
+                // Clear all children from the group and then re-add the axes
                 clearGroup(basisLatticeGroup);
+                basisLatticeGroup.add(basisAxesGroup);
+
                 const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
 
                 // This is a dummy unit cell to hold the basis atoms, always 1x1x1
