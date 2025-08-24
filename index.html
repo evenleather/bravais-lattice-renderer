@@ -26,7 +26,7 @@
             gap: 20px;
             overflow-y: auto;
         }
-        
+
         /* Styles for the tab navigation buttons */
         .menu-nav-button-container {
             display: flex;
@@ -44,7 +44,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        
+
         .menu-nav-button:hover {
             background-color: #555;
         }
@@ -52,7 +52,7 @@
         .menu-nav-button.active {
             background-color: #007bff;
         }
-        
+
         /* Styles for menu sections */
         .menu-section {
             display: none; /* Sections are hidden by default */
@@ -73,12 +73,12 @@
             flex-direction: column;
             gap: 5px;
         }
-        
+
         .input-group label {
             font-size: 0.9rem;
             color: #ccc;
         }
-        
+
         .input-group input[type="number"] {
             padding: 8px;
             border: 1px solid #555;
@@ -88,7 +88,7 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         .input-group input[type="color"] {
             height: 40px;
             padding: 4px;
@@ -111,7 +111,7 @@
             color: #ccc;
             cursor: pointer;
         }
-        
+
         /* Styles for the right-hand renderer */
         .renderer-container {
             width: 75%;
@@ -148,7 +148,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        
+
         .basis-item button:hover {
             background-color: #cc0000;
         }
@@ -157,50 +157,18 @@
             font-size: 1.2em;
             font-weight: bold;
         }
-        
+
         .atom-coordinates {
             font-family: 'Courier New', Courier, monospace;
         }
-
-        .add-atom-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 10px;
-            align-items: end;
-        }
-
-        .add-atom-form input {
-            width: 100%;
-        }
-
-        .add-atom-form button {
-            padding: 10px;
-            border: none;
-            background-color: #28a745;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .add-atom-form button:hover {
-            background-color: #218838;
-        }
-
-        .color-label {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
     </style>
 </head>
 <body>
     <!-- Main container for the left-hand menu and right-hand renderer -->
     <div class="menu-panel">
         <h2>Crystal Structure Renderer</h2>
-        
+        <p>This version includes camera panning and zooming via mouse/touch controls.</p>
+
         <!-- Tab navigation buttons -->
         <div class="menu-nav-button-container">
             <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
@@ -215,11 +183,11 @@
             <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
             <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I (BCC)</button>
             <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F (FCC)</button>
-            
+
             <h3>Tetragonal</h3>
             <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
             <button class="menu-nav-button render-button" data-lattice="tetragonalI">Tetragonal I</button>
-            
+
             <h3>Orthorhombic</h3>
             <button class="menu-nav-button render-button" data-lattice="orthorhombicP">Orthorhombic P</button>
             <button class="menu-nav-button render-button" data-lattice="orthorhombicA">Orthorhombic A</button>
@@ -227,10 +195,19 @@
             <button class="menu-nav-button render-button" data-lattice="orthorhombicC">Orthorhombic C</button>
             <button class="menu-nav-button render-button" data-lattice="orthorhombicI">Orthorhombic I</button>
             <button class="menu-nav-button render-button" data-lattice="orthorhombicF">Orthorhombic F</button>
-            
+
             <h3>Monoclinic</h3>
             <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
             <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
+
+            <h3>Triclinic</h3>
+            <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
+
+            <h3>Trigonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
+
+            <h3>Hexagonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
 
             <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
         </div>
@@ -301,46 +278,58 @@
             const addAtomButton = document.getElementById('addAtomButton');
 
             // --- Scene Setup ---
-            const scene = new THREE.Scene();
+            const mainScene = new THREE.Scene();
             const basisScene = new THREE.Scene();
 
-            const camera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
-            camera.position.set(2, 2, 5);
+            // Setup Cameras
+            const mainCamera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
+            mainCamera.position.set(2, 2, 5);
             const basisCamera = new THREE.PerspectiveCamera(75, rendererContainer.clientWidth / rendererContainer.clientHeight, 0.1, 1000);
-            // Adjusted camera position to better fit the rotated basis
             basisCamera.position.set(2, 2, 2);
 
-            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
-            renderer.setClearColor(0x000000, 0);
-            rendererContainer.appendChild(renderer.domElement);
-            renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+            // Setup Renderers
+            const mainRenderer = new THREE.WebGLRenderer({ antialias: true });
+            mainRenderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
+            mainRenderer.setClearColor(0x000000, 0);
+            rendererContainer.appendChild(mainRenderer.domElement);
+            mainRenderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            const pointLight = new THREE.PointLight(0xffffff, 1);
-            pointLight.position.set(5, 5, 5);
-            scene.add(pointLight);
+            // Lighting for main scene
+            const mainAmbientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            mainScene.add(mainAmbientLight);
+            const mainPointLight = new THREE.PointLight(0xffffff, 1);
+            mainPointLight.position.set(5, 5, 5);
+            mainScene.add(mainPointLight);
 
+            // Lighting for basis scene
             const basisAmbientLight = new THREE.AmbientLight(0xffffff, 0.5);
             basisScene.add(basisAmbientLight);
             const basisPointLight = new THREE.PointLight(0xffffff, 1);
             basisPointLight.position.set(1, 1, 1);
             basisScene.add(basisPointLight);
 
+            // A group to act as the pivot for rotation
+            const mainRotationPivot = new THREE.Group();
+            mainScene.add(mainRotationPivot);
+
             const latticeGroup = new THREE.Group();
-            scene.add(latticeGroup);
-            // Rotate the main lattice to have z-axis vertical
+            mainRotationPivot.add(latticeGroup);
+            // Rotate the lattice relative to the pivot
             latticeGroup.rotation.x = -Math.PI / 2;
 
+            const basisRotationPivot = new THREE.Group();
+            basisScene.add(basisRotationPivot);
+
             const basisLatticeGroup = new THREE.Group();
-            basisScene.add(basisLatticeGroup);
-            // Rotate the basis unit cell to have z-axis vertical
+            basisRotationPivot.add(basisLatticeGroup);
+            // Rotate the basis unit cell relative to the pivot
             basisLatticeGroup.rotation.x = -Math.PI / 2;
-            
+
+            let currentScene = mainScene;
+            let currentCamera = mainCamera;
+            let currentTargetRotation = mainRotationPivot.rotation;
+
             // --- Basis Data and State ---
-            // The basis is now a mutable array of atom objects
-            // Starting with a two-atom basis to demonstrate the functionality
             let basis = [
                 { id: crypto.randomUUID(), position: new THREE.Vector3(0, 0, 0), color: "#ffffff" },
                 { id: crypto.randomUUID(), position: new THREE.Vector3(0.5, 0.5, 0.5), color: "#00ff00" }
@@ -359,13 +348,13 @@
                 orthorhombicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'C' },
                 orthorhombicI: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'I' },
                 orthorhombicF: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'F' },
-                // Updated Monoclinic P and Monoclinic C with the new parameters
-                monoclinicP: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'P' },
-                monoclinicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'C' }
+                // Corrected Monoclinic definition
+                monoclinicP: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 110, gamma: 90, centeringType: 'P' },
+                monoclinicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 110, gamma: 90, centeringType: 'C' },
+                triclinicP: { a: 1, b: 1.2, c: 1.5, alpha: 80, beta: 70, gamma: 110, centeringType: 'P' },
+                trigonalR: { a: 1, b: 1, c: 1, alpha: 100, beta: 100, gamma: 100, centeringType: 'R' },
+                hexagonalP: { a: 1, b: 1, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'P' }
             };
-
-            let currentScene = scene;
-            let currentCamera = camera;
 
             // --- Rendering Functions ---
             function clearGroup(group) {
@@ -376,7 +365,7 @@
                     if (child.material) child.material.dispose();
                 }
             }
-            
+
             // Function to generate the inverse matrix for converting Cartesian to fractional coordinates
             function getInverseMatrix(a1, a2, a3) {
                 const matrix = new THREE.Matrix4();
@@ -388,14 +377,15 @@
                 );
                 return matrix.invert();
             }
-            
+
             function renderLattice(data, shouldRenderFaces, latticeType) {
+                // Clear the latticeGroup and reposition it
                 clearGroup(latticeGroup);
-                
+
                 const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
 
                 const { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = data;
-                
+
                 // Form the supercell basis vectors
                 const supercell_a1 = a1.clone().multiplyScalar(numCellsX);
                 const supercell_a2 = a2.clone().multiplyScalar(numCellsY);
@@ -410,7 +400,7 @@
                 // Filter atoms to only show those inside the main supercell
                 allAtoms.forEach(atom => {
                     const fracPos = atom.position.clone().applyMatrix4(supercellInverseMatrix);
-                    
+
                     // The main supercell is defined by 0 <= x,y,z <= 1 in fractional coordinates
                     if (fracPos.x >= -tolerance && fracPos.x <= 1 + tolerance &&
                         fracPos.y >= -tolerance && fracPos.y <= 1 + tolerance &&
@@ -419,15 +409,27 @@
                     }
                 });
 
+                // Calculate the bounding box and center of the visible atoms
+                const boundingBox = new THREE.Box3();
+                filteredAtoms.forEach(atom => {
+                    boundingBox.expandByPoint(atom.position);
+                });
+                const center = new THREE.Vector3();
+                boundingBox.getCenter(center);
+                mainRotationPivot.position.copy(center);
+
+                // Offset the lattice group by the center so it rotates around the pivot
+                const offset = center.negate();
+
                 filteredAtoms.forEach(atom => {
                     const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
                     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                    sphere.position.set(atom.position.x, atom.position.y, atom.position.z);
+                    sphere.position.set(atom.position.x + offset.x, atom.position.y + offset.y, atom.position.z + offset.z);
                     latticeGroup.add(sphere);
                 });
-                
+
                 const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
-                const lineGeometry = new THREE.BufferGeometry().setFromPoints(lines);
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(lines.map(p => p.clone().add(offset)));
                 const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
                 latticeGroup.add(lineSegments);
 
@@ -438,7 +440,7 @@
                         opacity: 0.1,
                         side: THREE.DoubleSide,
                     });
-                    
+
                     const faceVertices = [];
                     const faceIndices = [];
                     let vertexCount = 0;
@@ -446,17 +448,17 @@
                     for (let n1 = 0; n1 < numCellsX; n1++) {
                         for (let n2 = 0; n2 < numCellsY; n2++) {
                             for (let n3 = 0; n3 < numCellsZ; n3++) {
-                                const offset = a1.clone().multiplyScalar(n1).add(a2.clone().multiplyScalar(n2)).add(a3.clone().multiplyScalar(n3));
+                                const localOffset = a1.clone().multiplyScalar(n1).add(a2.clone().multiplyScalar(n2)).add(a3.clone().multiplyScalar(n3));
 
                                 const corners = [
-                                    offset.clone(),
-                                    a1.clone().add(offset),
-                                    a2.clone().add(offset),
-                                    a3.clone().add(offset),
-                                    a1.clone().add(a2).add(offset),
-                                    a1.clone().add(a3).add(offset),
-                                    a2.clone().add(a3).add(offset),
-                                    a1.clone().add(a2).add(a3).add(offset)
+                                    localOffset.clone(),
+                                    a1.clone().add(localOffset),
+                                    a2.clone().add(localOffset),
+                                    a3.clone().add(localOffset),
+                                    a1.clone().add(a2).add(localOffset),
+                                    a1.clone().add(a3).add(localOffset),
+                                    a2.clone().add(a3).add(localOffset),
+                                    a1.clone().add(a2).add(a3).add(localOffset)
                                 ];
 
                                 const faces = [
@@ -469,7 +471,10 @@
                                 ];
 
                                 faces.forEach(face => {
-                                    face.forEach(v => faceVertices.push(v.x, v.y, v.z));
+                                    face.forEach(v => {
+                                        const finalPos = v.clone().add(offset);
+                                        faceVertices.push(finalPos.x, finalPos.y, finalPos.z);
+                                    });
                                     faceIndices.push(vertexCount, vertexCount + 1, vertexCount + 2);
                                     faceIndices.push(vertexCount, vertexCount + 2, vertexCount + 3);
                                     vertexCount += 4;
@@ -510,7 +515,7 @@
                     new THREE.Vector3(1, 0, 1), new THREE.Vector3(1, 1, 1),
                     new THREE.Vector3(1, 1, 1), new THREE.Vector3(0, 1, 1),
                     new THREE.Vector3(0, 1, 1), new THREE.Vector3(0, 0, 1),
-                    
+
                     new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1),
                     new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 0, 1),
                     new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 1, 1),
@@ -520,14 +525,25 @@
                 const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
                 basisLatticeGroup.add(lineSegments);
 
+                // Calculate the bounding box and center of the basis atoms
+                const boundingBox = new THREE.Box3();
+                basis.forEach(atom => {
+                    boundingBox.expandByPoint(atom.position);
+                });
+                const center = new THREE.Vector3();
+                boundingBox.getCenter(center);
+                basisRotationPivot.position.copy(center);
+
+                // Offset the basis lattice group by the center so it rotates around the pivot
+                const offset = center.negate();
 
                 basis.forEach(atom => {
                     const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
                     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                    
-                    // Position the atoms correctly within the 1x1x1 cell
-                    sphere.position.copy(atom.position);
-                    
+
+                    // Position the atoms correctly within the 1x1x1 cell relative to the new pivot
+                    sphere.position.copy(atom.position).add(offset);
+
                     basisLatticeGroup.add(sphere);
                 });
             }
@@ -537,7 +553,7 @@
                 const allAtoms = [];
                 // The basis positions are already in fractional coordinates, but for the rendering function, we need them to be a part of the atom object.
                 // We'll calculate the Cartesian position later
-                
+
                 latticePoints.forEach(latticePos => {
                     basis.forEach(basisAtom => {
                         const newPos = latticePos.clone()
@@ -553,12 +569,12 @@
                 });
                 return allAtoms;
             }
-            
+
             function generateLatticePoints(latticeType) {
                 const numCellsX = parseInt(document.getElementById('lengthX').value, 10);
                 const numCellsY = parseInt(document.getElementById('lengthY').value, 10);
                 const numCellsZ = parseInt(document.getElementById('lengthZ').value, 10);
-                
+
                 const latticeParams = lattices[latticeType];
                 if (!latticeParams) {
                     console.error('Lattice type not found:', latticeType);
@@ -579,7 +595,6 @@
                 const a3z = V / (a * b * Math.sin(gammaRad));
                 const a3 = new THREE.Vector3(a3x, a3y, a3z);
 
-                const pointSet = new Set();
                 const lines = [];
 
                 let fractionalPositions = [];
@@ -588,6 +603,9 @@
                     case 'tetragonalP':
                     case 'orthorhombicP':
                     case 'monoclinicP':
+                    case 'triclinicP':
+                    case 'trigonalR':
+                    case 'hexagonalP': // Added hexagonalP here
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0)
                         ];
@@ -629,7 +647,7 @@
                         ];
                         break;
                 }
-                
+
                 const latticePoints = [];
                 // Overscan loops to ensure all atoms in the final unit cell range are included
                 for (let n1 = -1; n1 <= numCellsX; n1++) {
@@ -641,13 +659,13 @@
                                     .add(a1.clone().multiplyScalar(frac_pos.x))
                                     .add(a2.clone().multiplyScalar(frac_pos.y))
                                     .add(a3.clone().multiplyScalar(frac_pos.z));
-                                
+
                                 latticePoints.push(pos);
                             });
                         }
                     }
                 }
-                
+
                 // Add lines for the main unit cell grid only
                 for (let n1 = 0; n1 < numCellsX; n1++) {
                     for (let n2 = 0; n2 < numCellsY; n2++) {
@@ -668,12 +686,12 @@
                             lines.push(corners[1], corners[4]);
                             lines.push(corners[4], corners[2]);
                             lines.push(corners[2], corners[0]);
-                            
+
                             lines.push(corners[3], corners[5]);
                             lines.push(corners[5], corners[7]);
                             lines.push(corners[7], corners[6]);
                             lines.push(corners[6], corners[3]);
-                            
+
                             lines.push(corners[0], corners[3]);
                             lines.push(corners[1], corners[5]);
                             lines.push(corners[4], corners[7]);
@@ -681,103 +699,87 @@
                         }
                     }
                 }
-                
-                return { 
-                    points: latticePoints, 
-                    lines, 
-                    numCellsX, 
-                    numCellsY, 
-                    numCellsZ, 
-                    a1, a2, a3 
+
+                return {
+                    points: latticePoints,
+                    lines,
+                    numCellsX,
+                    numCellsY,
+                    numCellsZ,
+                    a1, a2, a3
                 };
             }
 
             // --- Interaction Controls (Mouse and Touch) ---
             let isDragging = false;
-            let isPanning = false;
-            let previousMousePosition = {
-                x: 0,
-                y: 0
-            };
+            let isRightClickDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
             const rotationSpeed = 0.005;
-            const panSpeed = 0.005;
+            const panSpeed = 0.01;
             const zoomSpeed = 0.005;
-            
-            renderer.domElement.addEventListener('mousedown', (event) => {
-                if (event.button === 2) {
-                    isPanning = true;
-                } else {
+
+            rendererContainer.addEventListener('mousedown', (event) => {
+                if (event.button === 0) { // Left mouse button
                     isDragging = true;
+                } else if (event.button === 2) { // Right mouse button
+                    isRightClickDragging = true;
                 }
                 previousMousePosition.x = event.clientX;
                 previousMousePosition.y = event.clientY;
             });
-            renderer.domElement.addEventListener('mousemove', (event) => {
+
+            rendererContainer.addEventListener('mousemove', (event) => {
                 const deltaMove = {
                     x: event.clientX - previousMousePosition.x,
                     y: event.clientY - previousMousePosition.y,
                 };
-
                 if (isDragging) {
-                    currentScene.rotation.y += deltaMove.x * rotationSpeed;
-                    currentScene.rotation.x += deltaMove.y * rotationSpeed;
-                } else if (isPanning) {
-                    currentCamera.position.x -= deltaMove.x * panSpeed;
-                    currentCamera.position.y += deltaMove.y * panSpeed;
+                    currentTargetRotation.y += deltaMove.x * rotationSpeed;
+                    currentTargetRotation.x += deltaMove.y * rotationSpeed;
+                } else if (isRightClickDragging) {
+                    currentCamera.translateX(-deltaMove.x * panSpeed);
+                    currentCamera.translateY(deltaMove.y * panSpeed);
                 }
                 previousMousePosition.x = event.clientX;
                 previousMousePosition.y = event.clientY;
             });
-            renderer.domElement.addEventListener('mouseup', () => {
+
+            rendererContainer.addEventListener('mouseup', () => {
                 isDragging = false;
-                isPanning = false;
+                isRightClickDragging = false;
             });
 
-            renderer.domElement.addEventListener('wheel', (event) => {
+            rendererContainer.addEventListener('wheel', (event) => {
                 event.preventDefault();
                 currentCamera.position.z += event.deltaY * zoomSpeed;
                 currentCamera.position.z = Math.max(1, Math.min(currentCamera.position.z, 20));
             });
 
-            renderer.domElement.addEventListener('touchstart', (event) => {
+            rendererContainer.addEventListener('touchstart', (event) => {
                 if (event.touches.length === 1) {
                     isDragging = true;
                     previousMousePosition.x = event.touches[0].clientX;
                     previousMousePosition.y = event.touches[0].clientY;
-                } else if (event.touches.length === 2) {
-                    isPanning = true;
-                    previousMousePosition.x = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-                    previousMousePosition.y = (event.touches[0].clientY + event.touches[1].clientY) / 2;
                 }
             });
-            renderer.domElement.addEventListener('touchend', () => {
+
+            rendererContainer.addEventListener('touchend', () => {
                 isDragging = false;
-                isPanning = false;
             });
-            renderer.domElement.addEventListener('touchmove', (event) => {
+
+            rendererContainer.addEventListener('touchmove', (event) => {
                 if (isDragging && event.touches.length === 1) {
                     const deltaMove = {
                         x: event.touches[0].clientX - previousMousePosition.x,
                         y: event.touches[0].clientY - previousMousePosition.y,
                     };
-                    currentScene.rotation.y += deltaMove.x * rotationSpeed;
-                    currentScene.rotation.x += deltaMove.y * rotationSpeed;
+                    currentTargetRotation.y += deltaMove.x * rotationSpeed;
+                    currentTargetRotation.x += deltaMove.y * rotationSpeed;
                     previousMousePosition.x = event.touches[0].clientX;
                     previousMousePosition.y = event.touches[0].clientY;
-                } else if (isPanning && event.touches.length === 2) {
-                    const currentMidpointX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-                    const currentMidpointY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
-                    const deltaMove = {
-                        x: currentMidpointX - previousMousePosition.x,
-                        y: currentMidpointY - previousMousePosition.y,
-                    };
-                    currentCamera.position.x -= deltaMove.x * panSpeed;
-                    currentCamera.position.y += deltaMove.y * panSpeed;
-                    previousMousePosition.x = currentMidpointX;
-                    previousMousePosition.y = currentMidpointY;
                 }
             });
-            
+
             // --- UI Interaction Logic ---
 
             function getSelectedLatticeType() {
@@ -788,11 +790,11 @@
             function updateLatticeRenderer() {
                 const selectedLatticeType = getSelectedLatticeType();
                 const shouldRenderFaces = document.getElementById('showFacesToggle').checked;
-                
+
                 const { points: latticePoints, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = generateLatticePoints(selectedLatticeType);
-                
+
                 const allAtoms = generateBasisAtLatticePoints(latticePoints, basis, a1, a2, a3);
-                
+
                 const data = { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 };
                 renderLattice(data, shouldRenderFaces, selectedLatticeType);
                 displayLatticeParams(selectedLatticeType);
@@ -846,7 +848,7 @@
                 };
 
                 basis.push(newAtom);
-                
+
                 // Update both renderers
                 updateLatticeRenderer();
                 updateBasisRenderer();
@@ -861,7 +863,7 @@
                 if (target.dataset.action === 'remove') {
                     const atomIdToRemove = target.closest('li').dataset.id;
                     basis = basis.filter(atom => atom.id !== atomIdToRemove);
-                    
+
                     // Update both renderers
                     updateLatticeRenderer();
                     updateBasisRenderer();
@@ -886,10 +888,12 @@
                     if (targetId === 'basisSection') {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
+                        currentTargetRotation = basisRotationPivot.rotation;
                         updateBasisRenderer();
                     } else {
-                        currentScene = scene;
-                        currentCamera = camera;
+                        currentScene = mainScene;
+                        currentCamera = mainCamera;
+                        currentTargetRotation = mainRotationPivot.rotation;
                         updateLatticeRenderer();
                     }
                 });
@@ -912,7 +916,7 @@
             unitCellInputs.forEach(input => {
                 input.addEventListener('input', updateLatticeRenderer);
             });
-            
+
             document.getElementById('showFacesToggle').addEventListener('change', updateLatticeRenderer);
 
             function displayLatticeParams(latticeType) {
@@ -939,22 +943,22 @@
             window.addEventListener('resize', () => {
                 const newWidth = rendererContainer.clientWidth;
                 const newHeight = rendererContainer.clientHeight;
-                camera.aspect = newWidth / newHeight;
-                camera.updateProjectionMatrix();
+                mainCamera.aspect = newWidth / newHeight;
+                mainCamera.updateProjectionMatrix();
                 basisCamera.aspect = newWidth / newHeight;
                 basisCamera.updateProjectionMatrix();
-                renderer.setSize(newWidth, newHeight);
+                mainRenderer.setSize(newWidth, newHeight);
             });
-
-            // --- Default Rendering ---
-            updateLatticeRenderer();
-            updateBasisRenderer();
 
             // --- Animation Loop ---
             function animate() {
                 requestAnimationFrame(animate);
-                renderer.render(currentScene, currentCamera);
+                mainRenderer.render(currentScene, currentCamera);
             }
+
+            // --- Default Rendering ---
+            updateLatticeRenderer();
+            updateBasisRenderer();
 
             animate();
         };
