@@ -231,6 +231,16 @@
             <h3>Monoclinic</h3>
             <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
             <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
+            
+            <h3>Triclinic</h3>
+            <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
+
+            <h3>Trigonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
+            
+            <h3>Hexagonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
+
 
             <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
         </div>
@@ -359,9 +369,12 @@
                 orthorhombicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'C' },
                 orthorhombicI: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'I' },
                 orthorhombicF: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 90, centeringType: 'F' },
-                // Updated Monoclinic P and Monoclinic C with the new parameters
-                monoclinicP: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'P' },
-                monoclinicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'C' }
+                monoclinicP: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 105, gamma: 90, centeringType: 'P' },
+                monoclinicC: { a: 1, b: 1.5, c: 2, alpha: 90, beta: 105, gamma: 90, centeringType: 'C' },
+                // New lattice types added here
+                triclinicP: { a: 1, b: 1.5, c: 2, alpha: 80, beta: 100, gamma: 110, centeringType: 'P' },
+                trigonalR: { a: 1.5, b: 1.5, c: 1.5, alpha: 80, beta: 80, gamma: 80, centeringType: 'R' },
+                hexagonalP: { a: 1, b: 1, c: 2, alpha: 90, beta: 90, gamma: 120, centeringType: 'P' },
             };
 
             let currentScene = scene;
@@ -588,6 +601,9 @@
                     case 'tetragonalP':
                     case 'orthorhombicP':
                     case 'monoclinicP':
+                    case 'triclinicP':
+                    case 'trigonalR':
+                    case 'hexagonalP':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0)
                         ];
