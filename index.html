@@ -98,6 +98,16 @@
             width: 100%;
             box-sizing: border-box;
         }
+        
+        .input-group select {
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
         /* Styles for the transparent faces toggle */
         .toggle-group {
@@ -190,6 +200,7 @@
             <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
             <button class="menu-nav-button" data-target="basisSection">Basis</button>
             <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
+            <button class="menu-nav-button" data-target="customSection">Custom</button>
         </div>
 
         <!-- Section for Bravais lattice selection -->
@@ -224,7 +235,6 @@
             
             <h3>Hexagonal</h3>
             <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
-
 
             <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
         </div>
@@ -277,6 +287,61 @@
                 <label for="showFacesToggle">Show transparent faces</label>
             </div>
         </div>
+        
+        <!-- New section for custom lattice parameters -->
+        <div id="customSection" class="menu-section">
+            <p>Define your own lattice parameters to render a custom unit cell.</p>
+            <div class="input-group">
+                <label for="customA">Lattice parameter a</label>
+                <input type="number" id="customA" value="1" step="0.1" min="0.1">
+            </div>
+            <div class="input-group">
+                <label for="customB">Lattice parameter b</label>
+                <input type="number" id="customB" value="1.5" step="0.1" min="0.1">
+            </div>
+            <div class="input-group">
+                <label for="customC">Lattice parameter c</label>
+                <input type="number" id="customC" value="2" step="0.1" min="0.1">
+            </div>
+            <div class="input-group">
+                <label for="customAlpha">Angle &alpha; ($^\circ$)</label>
+                <input type="number" id="customAlpha" value="90" step="1" min="1" max="180">
+            </div>
+            <div class="input-group">
+                <label for="customBeta">Angle &beta; ($^\circ$)</label>
+                <input type="number" id="customBeta" value="90" step="1" min="1" max="180">
+            </div>
+            <div class="input-group">
+                <label for="customGamma">Angle &gamma; ($^\circ$)</label>
+                <input type="number" id="customGamma" value="90" step="1" min="1" max="180">
+            </div>
+            <div class="input-group">
+                <label for="customCentering">Centering Type</label>
+                <select id="customCentering">
+                    <option value="P">P (Primitive)</option>
+                    <option value="I">I (Body-centered)</option>
+                    <option value="F">F (Face-centered)</option>
+                    <option value="A">A (A-face centered)</option>
+                    <option value="B">B (B-face centered)</option>
+                    <option value="C">C (C-face centered)</option>
+                    <option value="R">R (Rhombohedral)</option>
+                </select>
+            </div>
+            <!-- New input fields for custom lattice size -->
+            <div class="input-group">
+                <label for="customLengthX">Lattice Size (x)</label>
+                <input type="number" id="customLengthX" value="1" step="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="customLengthY">Lattice Size (y)</label>
+                <input type="number" id="customLengthY" value="1" step="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="customLengthZ">Lattice Size (z)</label>
+                <input type="number" id="customLengthZ" value="1" step="1" min="1">
+            </div>
+            <button id="renderCustomButton" class="menu-nav-button" style="margin-top: 10px;">Render Custom Lattice</button>
+        </div>
     </div>
 
     <!-- Main container for the 3D renderer -->
@@ -293,6 +358,13 @@
             const latticeParamsDisplay = document.getElementById('latticeParamsDisplay');
             const basisAtomsList = document.getElementById('basisAtomsList');
             const addAtomButton = document.getElementById('addAtomButton');
+            const renderCustomButton = document.getElementById('renderCustomButton');
+            
+            // Get the new custom size input elements
+            const customLengthXInput = document.getElementById('customLengthX');
+            const customLengthYInput = document.getElementById('customLengthY');
+            const customLengthZInput = document.getElementById('customLengthZ');
+
 
             // --- Scene Setup ---
             const scene = new THREE.Scene();
@@ -619,18 +691,14 @@
                 return allAtoms;
             }
             
-            function generateLatticePoints(latticeType) {
-                const numCellsX = parseInt(document.getElementById('lengthX').value, 10);
-                const numCellsY = parseInt(document.getElementById('lengthY').value, 10);
-                const numCellsZ = parseInt(document.getElementById('lengthZ').value, 10);
+            function generateLatticePoints(latticeParams, numCellsX, numCellsY, numCellsZ) {
                 
-                const latticeParams = lattices[latticeType];
                 if (!latticeParams) {
-                    console.error('Lattice type not found:', latticeType);
+                    console.error('Lattice parameters not found.');
                     return;
                 }
 
-                const { a, b, c, alpha, beta, gamma } = latticeParams;
+                const { a, b, c, alpha, beta, gamma, centeringType } = latticeParams;
                 const alphaRad = alpha * (Math.PI / 180);
                 const betaRad = beta * (Math.PI / 180);
                 const gammaRad = gamma * (Math.PI / 180);
@@ -648,28 +716,20 @@
                 const lines = [];
 
                 let fractionalPositions = [];
-                switch (latticeType) {
-                    case 'cubicP':
-                    case 'tetragonalP':
-                    case 'orthorhombicP':
-                    case 'monoclinicP':
-                    case 'triclinicP':
-                    case 'trigonalR':
-                    case 'hexagonalP':
+                switch (centeringType) {
+                    case 'P':
+                    case 'R':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0)
                         ];
                         break;
-                    case 'cubicI':
-                    case 'tetragonalI':
-                    case 'orthorhombicI':
+                    case 'I':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0.5, 0.5, 0.5)
                         ];
                         break;
-                    case 'cubicF':
-                    case 'orthorhombicF':
+                    case 'F':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0.5, 0.5, 0),
@@ -677,20 +737,19 @@
                             new THREE.Vector3(0, 0.5, 0.5)
                         ];
                         break;
-                    case 'orthorhombicA':
+                    case 'A':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0, 0.5, 0.5)
                         ];
                         break;
-                    case 'orthorhombicB':
+                    case 'B':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0.5, 0, 0.5)
                         ];
                         break;
-                    case 'orthorhombicC':
-                    case 'monoclinicC':
+                    case 'C':
                         fractionalPositions = [
                             new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0.5, 0.5, 0)
@@ -854,16 +913,52 @@
             }
 
             function updateLatticeRenderer() {
-                const selectedLatticeType = getSelectedLatticeType();
+                const activeSectionId = document.querySelector('.menu-section.active').id;
+                let latticeData;
+                let numCellsX, numCellsY, numCellsZ;
+
+                if (activeSectionId === 'customSection') {
+                    const customParams = {
+                        a: parseFloat(document.getElementById('customA').value),
+                        b: parseFloat(document.getElementById('customB').value),
+                        c: parseFloat(document.getElementById('customC').value),
+                        alpha: parseFloat(document.getElementById('customAlpha').value),
+                        beta: parseFloat(document.getElementById('customBeta').value),
+                        gamma: parseFloat(document.getElementById('customGamma').value),
+                        centeringType: document.getElementById('customCentering').value
+                    };
+                    // Use new custom size inputs
+                    numCellsX = parseInt(customLengthXInput.value, 10);
+                    numCellsY = parseInt(customLengthYInput.value, 10);
+                    numCellsZ = parseInt(customLengthZInput.value, 10);
+                    
+                    latticeData = generateLatticePoints(customParams, numCellsX, numCellsY, numCellsZ);
+                    displayLatticeParams('custom', customParams);
+                } else {
+                    const selectedLatticeType = getSelectedLatticeType();
+                    // Use existing unit cell inputs for Bravais lattices
+                    numCellsX = parseInt(document.getElementById('lengthX').value, 10);
+                    numCellsY = parseInt(document.getElementById('lengthY').value, 10);
+                    numCellsZ = parseInt(document.getElementById('lengthZ').value, 10);
+                    
+                    latticeData = generateLatticePoints(lattices[selectedLatticeType], numCellsX, numCellsY, numCellsZ);
+                    displayLatticeParams(selectedLatticeType);
+                }
+                
                 const shouldRenderFaces = document.getElementById('showFacesToggle').checked;
+                const allAtoms = generateBasisAtLatticePoints(latticeData.points, basis, latticeData.a1, latticeData.a2, latticeData.a3);
                 
-                const { points: latticePoints, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = generateLatticePoints(selectedLatticeType);
-                
-                const allAtoms = generateBasisAtLatticePoints(latticePoints, basis, a1, a2, a3);
-                
-                const data = { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 };
-                renderLattice(data, shouldRenderFaces, selectedLatticeType);
-                displayLatticeParams(selectedLatticeType);
+                const renderData = { 
+                    points: allAtoms, 
+                    lines: latticeData.lines, 
+                    numCellsX: latticeData.numCellsX, 
+                    numCellsY: latticeData.numCellsY, 
+                    numCellsZ: latticeData.numCellsZ, 
+                    a1: latticeData.a1, 
+                    a2: latticeData.a2, 
+                    a3: latticeData.a3 
+                };
+                renderLattice(renderData, shouldRenderFaces, latticeData.centeringType);
             }
 
             function updateBasisRenderer() {
@@ -974,6 +1069,9 @@
                     }
                 });
             });
+            
+            // Custom render button logic
+            renderCustomButton.addEventListener('click', updateLatticeRenderer);
 
             // Unit cell input change logic
             const unitCellInputs = document.querySelectorAll('#unitCellSection input[type="number"]');
@@ -982,12 +1080,28 @@
             });
             
             document.getElementById('showFacesToggle').addEventListener('change', updateLatticeRenderer);
+            
+            // Custom size inputs listener
+            customLengthXInput.addEventListener('input', updateLatticeRenderer);
+            customLengthYInput.addEventListener('input', updateLatticeRenderer);
+            customLengthZInput.addEventListener('input', updateLatticeRenderer);
 
-            function displayLatticeParams(latticeType) {
-                const params = lattices[latticeType];
-                const numCellsX = parseFloat(document.getElementById('lengthX').value);
-                const numCellsY = parseFloat(document.getElementById('lengthY').value);
-                const numCellsZ = parseFloat(document.getElementById('lengthZ').value);
+
+            function displayLatticeParams(latticeType, customParams = null) {
+                const params = customParams || lattices[latticeType];
+                let numCellsX, numCellsY, numCellsZ;
+                
+                // Determine which size inputs to use based on the active tab
+                const activeSectionId = document.querySelector('.menu-section.active').id;
+                if (activeSectionId === 'customSection') {
+                    numCellsX = parseFloat(customLengthXInput.value);
+                    numCellsY = parseFloat(customLengthYInput.value);
+                    numCellsZ = parseFloat(customLengthZInput.value);
+                } else {
+                    numCellsX = parseFloat(document.getElementById('lengthX').value);
+                    numCellsY = parseFloat(document.getElementById('lengthY').value);
+                    numCellsZ = parseFloat(document.getElementById('lengthZ').value);
+                }
 
                 if (!params) {
                     latticeParamsDisplay.innerHTML = 'Lattice parameters not found.';
