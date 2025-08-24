@@ -332,8 +332,10 @@
             
             // --- Basis Data and State ---
             // The basis is now a mutable array of atom objects
+            // Starting with a two-atom basis to demonstrate the functionality
             let basis = [
-                { id: crypto.randomUUID(), position: new THREE.Vector3(0, 0, 0), color: 0xffffff },
+                { id: crypto.randomUUID(), position: new THREE.Vector3(0, 0, 0), color: "#ffffff" },
+                { id: crypto.randomUUID(), position: new THREE.Vector3(0.5, 0.5, 0.5), color: "#00ff00" }
             ];
 
             // An object to hold the definitions for different Bravais lattices
@@ -363,24 +365,53 @@
                     if (child.material) child.material.dispose();
                 }
             }
-
-            function generateBasisAtLatticePoints(latticePoints, basis) {
-                const allAtoms = [];
-                latticePoints.forEach(latticePoint => {
-                    basis.forEach(basisAtom => {
-                        const finalPosition = latticePoint.clone().add(basisAtom.position);
-                        allAtoms.push({ position: finalPosition, color: basisAtom.color });
-                    });
-                });
-                return allAtoms;
+            
+            // Function to generate the inverse matrix for converting Cartesian to fractional coordinates
+            function getInverseMatrix(a1, a2, a3) {
+                const matrix = new THREE.Matrix4();
+                matrix.set(
+                    a1.x, a2.x, a3.x, 0,
+                    a1.y, a2.y, a3.y, 0,
+                    a1.z, a2.z, a3.z, 0,
+                    0, 0, 0, 1
+                );
+                return matrix.invert();
             }
-
+            
             function renderLattice(data, shouldRenderFaces, latticeType) {
                 clearGroup(latticeGroup);
                 
                 const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+
+                const { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = data;
                 
-                data.points.forEach(atom => {
+                // Form the supercell basis vectors
+                const supercell_a1 = a1.clone().multiplyScalar(numCellsX);
+                const supercell_a2 = a2.clone().multiplyScalar(numCellsY);
+                const supercell_a3 = a3.clone().multiplyScalar(numCellsZ);
+
+                // Get the inverse matrix for the supercell's basis vectors
+                const supercellInverseMatrix = getInverseMatrix(supercell_a1, supercell_a2, supercell_a3);
+
+                const filteredAtoms = [];
+                const tolerance = 1e-6;
+
+                // Filter atoms to only show those inside the main supercell
+                allAtoms.forEach(atom => {
+                    const fracPos = atom.position.clone().applyMatrix4(supercellInverseMatrix);
+                    
+                    // The main supercell is defined by 0 <= x,y,z <= 1 in fractional coordinates
+                    if (fracPos.x >= -tolerance && fracPos.x <= 1 + tolerance &&
+                        fracPos.y >= -tolerance && fracPos.y <= 1 + tolerance &&
+                        fracPos.z >= -tolerance && fracPos.z <= 1 + tolerance) {
+                        filteredAtoms.push(atom);
+                        // Log the atom's position for debugging
+                        console.log(`Rendered Atom at: (${atom.position.x.toFixed(2)}, ${atom.position.y.toFixed(2)}, ${atom.position.z.toFixed(2)})`);
+                        console.log(`  Fractional coords (Supercell): (${fracPos.x.toFixed(2)}, ${fracPos.y.toFixed(2)}, ${fracPos.z.toFixed(2)})`);
+                    }
+                });
+
+                filteredAtoms.forEach(atom => {
                     const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
                     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
                     sphere.position.set(atom.position.x, atom.position.y, atom.position.z);
@@ -388,26 +419,11 @@
                 });
                 
                 const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
-                const lineGeometry = new THREE.BufferGeometry().setFromPoints(data.lines);
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(lines);
                 const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
                 latticeGroup.add(lineSegments);
 
                 if (shouldRenderFaces) {
-                    const latticeParams = lattices[latticeType];
-                    const { a, b, c, alpha, beta, gamma } = latticeParams;
-                    const alphaRad = alpha * (Math.PI / 180);
-                    const betaRad = beta * (Math.PI / 180);
-                    const gammaRad = gamma * (Math.PI / 180);
-
-                    const a1 = new THREE.Vector3(a, 0, 0);
-                    const a2 = new THREE.Vector3(b * Math.cos(gammaRad), b * Math.sin(gammaRad), 0);
-                    const V_squared = 1 - Math.cos(alphaRad)**2 - Math.cos(betaRad)**2 - Math.cos(gammaRad)**2 + 2 * Math.cos(alphaRad) * Math.cos(betaRad) * Math.cos(gammaRad);
-                    const V = a * b * c * Math.sqrt(V_squared);
-                    const a3x = c * Math.cos(betaRad);
-                    const a3y = c * (Math.cos(alphaRad) - Math.cos(betaRad) * Math.cos(gammaRad)) / Math.sin(gammaRad);
-                    const a3z = V / (a * b * Math.sin(gammaRad));
-                    const a3 = new THREE.Vector3(a3x, a3y, a3z);
-
                     const faceMaterial = new THREE.MeshStandardMaterial({
                         color: 0xcccccc,
                         transparent: true,
@@ -419,9 +435,9 @@
                     const faceIndices = [];
                     let vertexCount = 0;
 
-                    for (let n1 = 0; n1 < data.numCellsX; n1++) {
-                        for (let n2 = 0; n2 < data.numCellsY; n2++) {
-                            for (let n3 = 0; n3 < data.numCellsZ; n3++) {
+                    for (let n1 = 0; n1 < numCellsX; n1++) {
+                        for (let n2 = 0; n2 < numCellsY; n2++) {
+                            for (let n3 = 0; n3 < numCellsZ; n3++) {
                                 const offset = a1.clone().multiplyScalar(n1).add(a2.clone().multiplyScalar(n2)).add(a3.clone().multiplyScalar(n3));
 
                                 const corners = [
@@ -476,6 +492,29 @@
                     basisLatticeGroup.add(sphere);
                 });
             }
+
+            // New function to generate all basis atoms at all lattice points
+            // FIX: Added a1, a2, a3 as function parameters to fix the rendering issue.
+            function generateBasisAtLatticePoints(latticePoints, basis, a1, a2, a3) {
+                const allAtoms = [];
+                // The basis positions are already in fractional coordinates, but for the rendering function, we need them to be a part of the atom object.
+                // We'll calculate the Cartesian position later
+                
+                latticePoints.forEach(latticePos => {
+                    basis.forEach(basisAtom => {
+                        const newPos = latticePos.clone()
+                            .add(a1.clone().multiplyScalar(basisAtom.position.x))
+                            .add(a2.clone().multiplyScalar(basisAtom.position.y))
+                            .add(a3.clone().multiplyScalar(basisAtom.position.z));
+
+                        allAtoms.push({
+                            position: newPos,
+                            color: basisAtom.color
+                        });
+                    });
+                });
+                return allAtoms;
+            }
             
             function generateLatticePoints(latticeType) {
                 const numCellsX = parseInt(document.getElementById('lengthX').value, 10);
@@ -511,61 +550,51 @@
                     case 'tetragonalP':
                     case 'orthorhombicP':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0),
-                            new THREE.Vector3(1, 0, 0),
-                            new THREE.Vector3(0, 1, 0),
-                            new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0),
-                            new THREE.Vector3(1, 0, 1),
-                            new THREE.Vector3(0, 1, 1),
-                            new THREE.Vector3(1, 1, 1)
+                            new THREE.Vector3(0, 0, 0)
                         ];
                         break;
                     case 'cubicI':
                     case 'tetragonalI':
                     case 'orthorhombicI':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, 1), new THREE.Vector3(1, 1, 1),
+                            new THREE.Vector3(0, 0, 0),
                             new THREE.Vector3(0.5, 0.5, 0.5)
                         ];
                         break;
                     case 'cubicF':
                     case 'orthorhombicF':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, 1), new THREE.Vector3(1, 1, 1),
-                            new THREE.Vector3(0.5, 0.5, 0), new THREE.Vector3(0.5, 0.5, 1),
-                            new THREE.Vector3(0.5, 0, 0.5), new THREE.Vector3(0.5, 1, 0.5),
-                            new THREE.Vector3(0, 0.5, 0.5), new THREE.Vector3(1, 0.5, 0.5)
+                            new THREE.Vector3(0, 0, 0),
+                            new THREE.Vector3(0.5, 0.5, 0),
+                            new THREE.Vector3(0.5, 0, 0.5),
+                            new THREE.Vector3(0, 0.5, 0.5)
                         ];
                         break;
                     case 'orthorhombicA':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, 1), new THREE.Vector3(1, 1, 1),
-                            new THREE.Vector3(0, 0.5, 0.5), new THREE.Vector3(1, 0.5, 0.5)
+                            new THREE.Vector3(0, 0, 0),
+                            new THREE.Vector3(0, 0.5, 0.5)
                         ];
                         break;
                     case 'orthorhombicB':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, 1), new THREE.Vector3(1, 1, 1),
-                            new THREE.Vector3(0.5, 0, 0.5), new THREE.Vector3(0.5, 1, 0.5)
+                            new THREE.Vector3(0, 0, 0),
+                            new THREE.Vector3(0.5, 0, 0.5)
                         ];
                         break;
                     case 'orthorhombicC':
                         fractionalPositions = [
-                            new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1),
-                            new THREE.Vector3(1, 1, 0), new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, 1), new THREE.Vector3(1, 1, 1),
-                            new THREE.Vector3(0.5, 0.5, 0), new THREE.Vector3(0.5, 0.5, 1)
+                            new THREE.Vector3(0, 0, 0),
+                            new THREE.Vector3(0.5, 0.5, 0)
                         ];
                         break;
                 }
                 
-                for (let n1 = 0; n1 < numCellsX; n1++) {
-                    for (let n2 = 0; n2 < numCellsY; n2++) {
-                        for (let n3 = 0; n3 < numCellsZ; n3++) {
+                const latticePoints = [];
+                // Overscan loops to ensure all atoms in the final unit cell range are included
+                for (let n1 = -1; n1 <= numCellsX; n1++) {
+                    for (let n2 = -1; n2 <= numCellsY; n2++) {
+                        for (let n3 = -1; n3 <= numCellsZ; n3++) {
                             const offset = a1.clone().multiplyScalar(n1).add(a2.clone().multiplyScalar(n2)).add(a3.clone().multiplyScalar(n3));
                             fractionalPositions.forEach(frac_pos => {
                                 const pos = offset.clone()
@@ -573,17 +602,13 @@
                                     .add(a2.clone().multiplyScalar(frac_pos.y))
                                     .add(a3.clone().multiplyScalar(frac_pos.z));
                                 
-                                pointSet.add(`${pos.x.toFixed(5)},${pos.y.toFixed(5)},${pos.z.toFixed(5)}`);
+                                latticePoints.push(pos);
                             });
                         }
                     }
                 }
                 
-                const points = Array.from(pointSet).map(pointStr => {
-                    const coords = pointStr.split(',').map(Number);
-                    return new THREE.Vector3(coords[0], coords[1], coords[2]);
-                });
-
+                // Add lines for the main unit cell grid only
                 for (let n1 = 0; n1 < numCellsX; n1++) {
                     for (let n2 = 0; n2 < numCellsY; n2++) {
                         for (let n3 = 0; n3 < numCellsZ; n3++) {
@@ -617,7 +642,14 @@
                     }
                 }
                 
-                return { points, lines, numCellsX, numCellsY, numCellsZ };
+                return { 
+                    points: latticePoints, 
+                    lines, 
+                    numCellsX, 
+                    numCellsY, 
+                    numCellsZ, 
+                    a1, a2, a3 
+                };
             }
 
             // --- Interaction Controls (Mouse and Touch) ---
@@ -717,10 +749,12 @@
                 const selectedLatticeType = getSelectedLatticeType();
                 const shouldRenderFaces = document.getElementById('showFacesToggle').checked;
                 
-                const { points: latticePoints, lines, numCellsX, numCellsY, numCellsZ } = generateLatticePoints(selectedLatticeType);
-                const allAtoms = generateBasisAtLatticePoints(latticePoints, basis);
+                const { points: latticePoints, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = generateLatticePoints(selectedLatticeType);
                 
-                const data = { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ };
+                // FIX: Passed a1, a2, and a3 to the function so it can calculate the positions correctly.
+                const allAtoms = generateBasisAtLatticePoints(latticePoints, basis, a1, a2, a3);
+                
+                const data = { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 };
                 renderLattice(data, shouldRenderFaces, selectedLatticeType);
                 displayLatticeParams(selectedLatticeType);
             }
