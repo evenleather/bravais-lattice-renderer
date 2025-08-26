@@ -974,7 +974,7 @@
                     li.classList.add('basis-item');
                     li.dataset.id = atom.id;
 
-                    const coords = `(${atom.position.x.toFixed(2)}, ${atom.position.y.toFixed(2)}, ${atom.position.z.toFixed(2)})`;
+                    const coords = `(${atom.position.x.toFixed(4)}, ${atom.position.y.toFixed(4)}, ${atom.position.z.toFixed(4)})`;
                     const colorCircle = `<div style="width:20px; height:20px; background-color:${atom.color}; border-radius:50%; border: 1px solid #555;"></div>`;
 
                     li.innerHTML = `
