@@ -1,4 +1,4 @@
-/* Reset some default spacing */
+/* Reset spacing */
 * {
   margin: 0;
   padding: 0;
@@ -8,58 +8,41 @@
 /* Body styles */
 body {
   font-family: Arial, sans-serif;
-  line-height: 1.6;
   background-color: #f4f4f4;
   color: #333;
+  padding: 20px;
 }
 
 /* Header */
 header {
-  background: #333;
-  color: white;
-  padding: 20px;
   text-align: center;
+  margin-bottom: 30px;
 }
 
 header h1 {
-  margin-bottom: 10px;
+  font-size: 2rem;
+  color: #222;
 }
 
-/* Navigation */
-nav {
-  background: #444;
-  padding: 10px 0;
-}
-
-nav ul {
+/* Project list */
+.project-list {
   list-style: none;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-nav a:hover {
-  text-decoration: underline;
-}
-
-/* Main content */
-main {
-  padding: 20px;
-  max-width: 800px;
+  max-width: 600px;
   margin: auto;
+  padding: 0;
 }
 
-/* Footer */
-footer {
-  background: #333;
-  color: white;
-  text-align: center;
-  padding: 15px;
-  margin-top: 30px;
+.project-list li {
+  margin: 15px 0;
+  font-size: 1.2rem;
+}
+
+.project-list a {
+  text-decoration: none;
+  color: #0077cc;
+  transition: color 0.2s;
+}
+
+.project-list a:hover {
+  color: #005fa3;
 }
