@@ -828,7 +828,7 @@
             };
             const rotationSpeed = 0.005;
             const panSpeed = 0.005;
-            const zoomSpeed = 0.005;
+            const zoomSpeed = 0.0025;
             
             renderer.domElement.addEventListener('mousedown', (event) => {
                 if (event.button === 2) {
@@ -863,7 +863,7 @@
             renderer.domElement.addEventListener('wheel', (event) => {
                 event.preventDefault();
                 currentCamera.position.z += event.deltaY * zoomSpeed;
-                currentCamera.position.z = Math.max(1, Math.min(currentCamera.position.z, 20));
+                currentCamera.position.z = Math.max(0.1, Math.min(currentCamera.position.z, 20));
             });
 
             renderer.domElement.addEventListener('touchstart', (event) => {
