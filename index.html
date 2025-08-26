@@ -526,7 +526,7 @@
                 clearGroup(latticeGroup);
                 latticeGroup.add(latticeAxesGroup);
 
-                const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+                const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
 
                 const { points: allAtoms, lines, numCellsX, numCellsY, numCellsZ, a1, a2, a3 } = data;
                 
@@ -628,7 +628,7 @@
                 clearGroup(basisLatticeGroup);
                 basisLatticeGroup.add(basisAxesGroup);
 
-                const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+                const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
 
                 // This is a dummy unit cell to hold the basis atoms, always 1x1x1
                 const a1 = new THREE.Vector3(1, 0, 0);
