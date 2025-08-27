@@ -42,17 +42,6 @@ window.onload = function() {
                     addPointButton.disabled = false;
                     pointsLimitMsg.textContent = '';
                 }
-                updatePointsDistance();
-                // Only update the rendering, do not change the scene/camera
-                if (typeof updateLatticeRenderer === 'function') {
-                    // Save current scene/camera
-                    const prevScene = currentScene;
-                    const prevCamera = currentCamera;
-                    updateLatticeRenderer();
-                    // Restore scene/camera
-                    currentScene = prevScene;
-                    currentCamera = prevCamera;
-                }
             }
 
             addPointButton.addEventListener('click', () => {
@@ -166,6 +155,7 @@ window.onload = function() {
             // Starting with a two-atom basis to demonstrate the functionality
             let basis = [
                 { id: crypto.randomUUID(), position: new THREE.Vector3(0, 0, 0), color: "#ffffff" },
+                { id: crypto.randomUUID(), position: new THREE.Vector3(0.5, 0.5, 0.5), color: "#00ff00" }
             ];
 
             // An object to hold the definitions for different Bravais lattices
@@ -253,26 +243,6 @@ window.onload = function() {
                     sphere.position.set(atom.position.x, atom.position.y, atom.position.z);
                     latticeGroup.add(sphere);
                 });
-                // Add points from the Points tab as bright pink atoms in the main scene
-                // Render points as relative positions using lattice parameters
-                if (Array.isArray(points)) {
-                    // Use the lattice parameters for this scene
-                    const a = a1.length();
-                    const b = a2.length();
-                    const c = a3.length();
-                    // Calculate angles
-                    const alpha = Math.acos(a2.dot(a3) / (a2.length() * a3.length())) * 180 / Math.PI;
-                    const beta = Math.acos(a1.dot(a3) / (a1.length() * a3.length())) * 180 / Math.PI;
-                    const gamma = Math.acos(a1.dot(a2) / (a1.length() * a2.length())) * 180 / Math.PI;
-                    points.forEach(pt => {
-                        // Convert fractional to cartesian
-                        const cart = fractionalToCartesian(pt, a, b, c, alpha, beta, gamma);
-                        const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff33cc') });
-                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                        sphere.position.set(cart.x, cart.y, cart.z);
-                        latticeGroup.add(sphere);
-                    });
-                }
                 
                 const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
                 const lineGeometry = new THREE.BufferGeometry().setFromPoints(lines);
@@ -917,103 +887,4 @@ window.onload = function() {
             }
 
             animate();
-
-            // Utility to convert fractional to cartesian using lattice parameters
-function fractionalToCartesian(frac, a, b, c, alpha, beta, gamma) {
-    // Convert angles to radians
-    const alphaRad = alpha * Math.PI / 180;
-    const betaRad = beta * Math.PI / 180;
-    const gammaRad = gamma * Math.PI / 180;
-    // Lattice vectors
-    const ax = a;
-    const ay = 0;
-    const az = 0;
-    const bx = b * Math.cos(gammaRad);
-    const by = b * Math.sin(gammaRad);
-    const bz = 0;
-    const cx = c * Math.cos(betaRad);
-    const cy = c * (Math.cos(alphaRad) - Math.cos(betaRad) * Math.cos(gammaRad)) / Math.sin(gammaRad);
-    const cz = Math.sqrt(
-        c * c
-        - cx * cx
-        - cy * cy
-    );
-    // Cartesian coordinates
-    return {
-        x: frac.x * ax + frac.y * bx + frac.z * cx,
-        y: frac.x * ay + frac.y * by + frac.z * cy,
-        z: frac.x * az + frac.y * bz + frac.z * cz
-    };
-}
-
-const pointsDistanceDisplay = document.getElementById('pointsDistanceDisplay');
-function updatePointsDistance() {
-    if (points.length !== 2) {
-        pointsDistanceDisplay.textContent = '';
-        return;
-    }
-    // Get lattice parameters (custom if customSection is active, else from selected lattice)
-    let a, b, c, alpha, beta, gamma;
-    const activeSectionId = document.querySelector('.menu-section.active')?.id;
-    if (activeSectionId === 'customSection') {
-        a = parseFloat(document.getElementById('customA').value);
-        b = parseFloat(document.getElementById('customB').value);
-        c = parseFloat(document.getElementById('customC').value);
-        alpha = parseFloat(document.getElementById('customAlpha').value);
-        beta = parseFloat(document.getElementById('customBeta').value);
-        gamma = parseFloat(document.getElementById('customGamma').value);
-    } else {
-        // Use selected lattice type
-        const selectedLatticeType = getSelectedLatticeType();
-        const params = lattices[selectedLatticeType];
-        a = params.a;
-        b = params.b;
-        c = params.c;
-        alpha = params.alpha;
-        beta = params.beta;
-        gamma = params.gamma;
-    }
-    // Metric tensor for the lattice
-    const alphaRad = alpha * Math.PI / 180;
-    const betaRad = beta * Math.PI / 180;
-    const gammaRad = gamma * Math.PI / 180;
-    const cosAlpha = Math.cos(alphaRad);
-    const cosBeta = Math.cos(betaRad);
-    const cosGamma = Math.cos(gammaRad);
-    // Metric tensor G
-    const G = [
-        [a*a, a*b*cosGamma, a*c*cosBeta],
-        [a*b*cosGamma, b*b, b*c*cosAlpha],
-        [a*c*cosBeta, b*c*cosAlpha, c*c]
-    ];
-    // Difference vector in fractional coordinates
-    const dx = points[0].x - points[1].x;
-    const dy = points[0].y - points[1].y;
-    const dz = points[0].z - points[1].z;
-    // Distance squared: d^2 = v^T G v
-    const d2 =
-        dx*dx*G[0][0] + 2*dx*dy*G[0][1] + 2*dx*dz*G[0][2] +
-        dy*dy*G[1][1] + 2*dy*dz*G[1][2] +
-        dz*dz*G[2][2];
-    const dist = Math.sqrt(Math.abs(d2));
-    pointsDistanceDisplay.textContent = `Distance between points: ${dist.toFixed(4)} Å`;
-}
-
-// Attach listeners to all lattice parameter inputs to update distance automatically
-{
-    const ids = [
-        'lengthX', 'lengthY', 'lengthZ',
-        'showFacesToggle',
-        'customA', 'customB', 'customC',
-        'customAlpha', 'customBeta', 'customGamma', 'customCentering',
-        'customLengthX', 'customLengthY', 'customLengthZ'
-    ];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updatePointsDistance);
-    });
-}
-// Bravais lattice type
-const bravaisButtons = document.querySelectorAll('#bravaisSection .render-button');
-bravaisButtons.forEach(btn => btn.addEventListener('click', updatePointsDistance));
         };
