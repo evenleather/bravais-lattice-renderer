@@ -578,8 +578,48 @@ window.onload = function() {
             }
 
             function updateBasisRenderer() {
-                renderBasis();
-                renderBasisAtomsList();
+                // If the custom tab was last active, render the basis with the custom lattice size
+                const activeSectionId = document.querySelector('.menu-section.active').id;
+                if (activeSectionId === 'customSection') {
+                    // Get custom lattice size values
+                    const numCellsX = parseInt(customLengthXInput.value, 10);
+                    const numCellsY = parseInt(customLengthYInput.value, 10);
+                    const numCellsZ = parseInt(customLengthZInput.value, 10);
+                    // Use the current basis and a 1x1x1 cell for atom positions, but show the custom lattice grid
+                    // We'll use the custom lattice parameters for the cell shape
+                    const customParams = {
+                        a: parseFloat(document.getElementById('customA').value),
+                        b: parseFloat(document.getElementById('customB').value),
+                        c: parseFloat(document.getElementById('customC').value),
+                        alpha: parseFloat(document.getElementById('customAlpha').value),
+                        beta: parseFloat(document.getElementById('customBeta').value),
+                        gamma: parseFloat(document.getElementById('customGamma').value),
+                        centeringType: document.getElementById('customCentering').value
+                    };
+                    // Generate lattice points for the custom lattice
+                    const latticeData = generateLatticePoints(customParams, numCellsX, numCellsY, numCellsZ);
+                    // Render the basis atoms at the origin cell only (as in the original basis view)
+                    // But show the custom lattice grid
+                    clearGroup(basisLatticeGroup);
+                    basisLatticeGroup.add(basisAxesGroup);
+                    // Draw the lattice grid
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(latticeData.lines);
+                    const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
+                    basisLatticeGroup.add(lineSegments);
+                    // Draw the basis atoms in the first cell (as before)
+                    const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+                    basis.forEach(atom => {
+                        const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
+                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                        sphere.position.copy(atom.position);
+                        basisLatticeGroup.add(sphere);
+                    });
+                    renderBasisAtomsList();
+                } else {
+                    renderBasis();
+                    renderBasisAtomsList();
+                }
             }
 
             // Function to render the list of atoms in the Basis tab
