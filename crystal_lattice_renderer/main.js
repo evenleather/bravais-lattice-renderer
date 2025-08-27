@@ -157,7 +157,6 @@ window.onload = function() {
             // Starting with a two-atom basis to demonstrate the functionality
             let basis = [
                 { id: crypto.randomUUID(), position: new THREE.Vector3(0, 0, 0), color: "#ffffff" },
-                { id: crypto.randomUUID(), position: new THREE.Vector3(0.5, 0.5, 0.5), color: "#00ff00" }
             ];
 
             // An object to hold the definitions for different Bravais lattices
