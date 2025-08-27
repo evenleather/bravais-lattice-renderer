@@ -7,6 +7,17 @@ window.onload = function() {
             const pointYInput = document.getElementById('pointY');
             const pointZInput = document.getElementById('pointZ');
 
+
+            // Show a message if max points reached
+            let pointsLimitMsg = document.getElementById('pointsLimitMsg');
+            if (!pointsLimitMsg) {
+                pointsLimitMsg = document.createElement('div');
+                pointsLimitMsg.id = 'pointsLimitMsg';
+                pointsLimitMsg.style.color = 'red';
+                pointsLimitMsg.style.marginTop = '8px';
+                addPointButton.parentNode.insertBefore(pointsLimitMsg, addPointButton.nextSibling);
+            }
+
             function renderPointsList() {
                 pointsList.innerHTML = '';
                 points.forEach((pt, idx) => {
@@ -24,9 +35,20 @@ window.onload = function() {
                     `;
                     pointsList.appendChild(li);
                 });
+                if (points.length >= 2) {
+                    addPointButton.disabled = true;
+                    pointsLimitMsg.textContent = 'Maximum of 2 points allowed.';
+                } else {
+                    addPointButton.disabled = false;
+                    pointsLimitMsg.textContent = '';
+                }
             }
 
             addPointButton.addEventListener('click', () => {
+                if (points.length >= 2) {
+                    renderPointsList();
+                    return;
+                }
                 const x = parseFloat(pointXInput.value);
                 const y = parseFloat(pointYInput.value);
                 const z = parseFloat(pointZInput.value);
@@ -329,6 +351,15 @@ window.onload = function() {
                     
                     basisLatticeGroup.add(sphere);
                 });
+                // Add points from the Points tab as bright pink atoms
+                if (Array.isArray(points)) {
+                    points.forEach(pt => {
+                        const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff33cc') });
+                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                        sphere.position.set(pt.x, pt.y, pt.z);
+                        basisLatticeGroup.add(sphere);
+                    });
+                }
             }
 
             // New function to generate all basis atoms at all lattice points
