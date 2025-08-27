@@ -1,72 +1,4 @@
 window.onload = function() {
-            // --- Points Tab Functionality ---
-            let points = [];
-            const addPointButton = document.getElementById('addPointButton');
-            const pointsList = document.getElementById('pointsList');
-            const pointXInput = document.getElementById('pointX');
-            const pointYInput = document.getElementById('pointY');
-            const pointZInput = document.getElementById('pointZ');
-
-
-            // Show a message if max points reached
-            let pointsLimitMsg = document.getElementById('pointsLimitMsg');
-            if (!pointsLimitMsg) {
-                pointsLimitMsg = document.createElement('div');
-                pointsLimitMsg.id = 'pointsLimitMsg';
-                pointsLimitMsg.style.color = 'red';
-                pointsLimitMsg.style.marginTop = '8px';
-                addPointButton.parentNode.insertBefore(pointsLimitMsg, addPointButton.nextSibling);
-            }
-
-            function renderPointsList() {
-                pointsList.innerHTML = '';
-                points.forEach((pt, idx) => {
-                    const li = document.createElement('li');
-                    li.classList.add('basis-item');
-                    li.dataset.idx = idx;
-                    const coords = `(${pt.x.toFixed(4)}, ${pt.y.toFixed(4)}, ${pt.z.toFixed(4)})`;
-                    li.innerHTML = `
-                        <div>
-                            <p class="atom-coordinates">${coords}</p>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <button data-idx="${idx}">Remove</button>
-                        </div>
-                    `;
-                    pointsList.appendChild(li);
-                });
-                if (points.length >= 2) {
-                    addPointButton.disabled = true;
-                    pointsLimitMsg.textContent = 'Maximum of 2 points allowed.';
-                } else {
-                    addPointButton.disabled = false;
-                    pointsLimitMsg.textContent = '';
-                }
-            }
-
-            addPointButton.addEventListener('click', () => {
-                if (points.length >= 2) {
-                    renderPointsList();
-                    return;
-                }
-                const x = parseFloat(pointXInput.value);
-                const y = parseFloat(pointYInput.value);
-                const z = parseFloat(pointZInput.value);
-                if (isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 1 || y < 0 || y > 1 || z < 0 || z > 1) {
-                    alert('Please enter valid Miller coordinates (0-1) for x, y, z.');
-                    return;
-                }
-                points.push({ x, y, z });
-                renderPointsList();
-            });
-
-            pointsList.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON' && e.target.dataset.idx !== undefined) {
-                    const idx = parseInt(e.target.dataset.idx, 10);
-                    points.splice(idx, 1);
-                    renderPointsList();
-                }
-            });
             // Get the container for the renderer and UI elements
             const rendererContainer = document.getElementById('rendererContainer');
             const latticeParamsDisplay = document.getElementById('latticeParamsDisplay');
@@ -351,15 +283,6 @@ window.onload = function() {
                     
                     basisLatticeGroup.add(sphere);
                 });
-                // Add points from the Points tab as bright pink atoms
-                if (Array.isArray(points)) {
-                    points.forEach(pt => {
-                        const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff33cc') });
-                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                        sphere.position.set(pt.x, pt.y, pt.z);
-                        basisLatticeGroup.add(sphere);
-                    });
-                }
             }
 
             // New function to generate all basis atoms at all lattice points
@@ -770,8 +693,7 @@ window.onload = function() {
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     // Set lastTabId to the current tab before changing tabs
-                    lastTabId = document.querySelector('.menu-section.active')?.id;
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
@@ -784,13 +706,6 @@ window.onload = function() {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
                         updateBasisRenderer();
-                    } else if (
-                        targetId === 'directionsSection' ||
-                        targetId === 'pointsSection' ||
-                        targetId === 'planesSection'
-                    ) {
-                        // Do not change the scene or renderer, just show the tab
-                        // This preserves the current scene (custom, basis, or normal lattice)
                     } else {
                         currentScene = scene;
                         currentCamera = camera;
