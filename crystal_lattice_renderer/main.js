@@ -43,7 +43,10 @@ window.onload = function() {
                     pointsLimitMsg.textContent = '';
                 }
                 updatePointsDistance();
-                updateLatticeRenderer();
+                // Only update the rendering, do not change the scene/camera
+                if (typeof updateLatticeRenderer === 'function') {
+                    updateLatticeRenderer();
+                }
             }
 
             addPointButton.addEventListener('click', () => {
