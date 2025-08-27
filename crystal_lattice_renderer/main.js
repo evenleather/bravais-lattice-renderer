@@ -578,8 +578,8 @@ window.onload = function() {
             }
 
             function updateBasisRenderer() {
-                // If the custom tab was last active, render the basis with the custom lattice size
-                if (lastTabId === 'customSection') {
+                // If the previous tab was customSection, render the basis with the custom lattice size
+                if (previousTabId === 'customSection') {
                     // Get custom lattice size values
                     const numCellsX = parseInt(customLengthXInput.value, 10);
                     const numCellsY = parseInt(customLengthYInput.value, 10);
@@ -686,12 +686,18 @@ window.onload = function() {
             });
 
 
-            // Tab switching logic with lastTabId tracking
+            // Tab switching logic with previousTabId tracking
             let lastTabId = 'bravaisSection';
+            let previousTabId = 'bravaisSection';
             const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
             const menuSections = document.querySelectorAll('.menu-section');
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    // Find the currently active tab before switching
+                    const currentActiveSection = document.querySelector('.menu-section.active');
+                    if (currentActiveSection) {
+                        previousTabId = currentActiveSection.id;
+                    }
                     tabButtons.forEach(btn => btn.classList.remove('active'));
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
