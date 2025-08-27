@@ -693,7 +693,8 @@ window.onload = function() {
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     // Set lastTabId to the current tab before changing tabs
-                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    lastTabId = document.querySelector('.menu-section.active')?.id;
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
@@ -706,6 +707,8 @@ window.onload = function() {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
                         updateBasisRenderer();
+                    } else if (targetId === 'directionsSection') {
+                        // Do not change the scene or renderer, just show the tab
                     } else {
                         currentScene = scene;
                         currentCamera = camera;
