@@ -43,7 +43,8 @@ body {
         }
 
         .menu-nav-button.active {
-            background-color: #007bff;
+            background-color: #007bff !important;
+            color: #fff;
         }
         
         /* Styles for menu sections */
