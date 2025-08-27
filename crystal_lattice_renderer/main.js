@@ -887,4 +887,84 @@ window.onload = function() {
             }
 
             animate();
+
+            // Utility to convert fractional to cartesian using lattice parameters
+function fractionalToCartesian(frac, a, b, c, alpha, beta, gamma) {
+    // Convert angles to radians
+    const alphaRad = alpha * Math.PI / 180;
+    const betaRad = beta * Math.PI / 180;
+    const gammaRad = gamma * Math.PI / 180;
+    // Lattice vectors
+    const ax = a;
+    const ay = 0;
+    const az = 0;
+    const bx = b * Math.cos(gammaRad);
+    const by = b * Math.sin(gammaRad);
+    const bz = 0;
+    const cx = c * Math.cos(betaRad);
+    const cy = c * (Math.cos(alphaRad) - Math.cos(betaRad) * Math.cos(gammaRad)) / Math.sin(gammaRad);
+    const cz = Math.sqrt(
+        c * c
+        - cx * cx
+        - cy * cy
+    );
+    // Cartesian coordinates
+    return {
+        x: frac.x * ax + frac.y * bx + frac.z * cx,
+        y: frac.x * ay + frac.y * by + frac.z * cy,
+        z: frac.x * az + frac.y * bz + frac.z * cz
+    };
+}
+
+const pointsDistanceDisplay = document.getElementById('pointsDistanceDisplay');
+function updatePointsDistance() {
+    if (points.length !== 2) {
+        pointsDistanceDisplay.textContent = '';
+        return;
+    }
+    // Get lattice parameters (custom if customSection is active, else from selected lattice)
+    let a, b, c, alpha, beta, gamma;
+    const activeSectionId = document.querySelector('.menu-section.active')?.id;
+    if (activeSectionId === 'customSection') {
+        a = parseFloat(document.getElementById('customA').value);
+        b = parseFloat(document.getElementById('customB').value);
+        c = parseFloat(document.getElementById('customC').value);
+        alpha = parseFloat(document.getElementById('customAlpha').value);
+        beta = parseFloat(document.getElementById('customBeta').value);
+        gamma = parseFloat(document.getElementById('customGamma').value);
+    } else {
+        // Use selected lattice type
+        const selectedLatticeType = getSelectedLatticeType();
+        const params = lattices[selectedLatticeType];
+        a = params.a;
+        b = params.b;
+        c = params.c;
+        alpha = params.alpha;
+        beta = params.beta;
+        gamma = params.gamma;
+    }
+    const cart1 = fractionalToCartesian(points[0], a, b, c, alpha, beta, gamma);
+    const cart2 = fractionalToCartesian(points[1], a, b, c, alpha, beta, gamma);
+    const dx = cart1.x - cart2.x;
+    const dy = cart1.y - cart2.y;
+    const dz = cart1.z - cart2.z;
+    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    pointsDistanceDisplay.textContent = `Distance between points: ${dist.toFixed(4)} Å`;
+}
+
+// Patch renderPointsList to call updatePointsDistance
+const originalRenderPointsList = renderPointsList;
+renderPointsList = function() {
+    originalRenderPointsList();
+    updatePointsDistance();
+};
+
+// Patch addPointButton and pointsList event listeners to update distance
+const originalAddPointClick = addPointButton.onclick;
+addPointButton.addEventListener('click', function() {
+    updatePointsDistance();
+});
+pointsList.addEventListener('click', function() {
+    updatePointsDistance();
+});
         };
