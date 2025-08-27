@@ -579,13 +579,11 @@ window.onload = function() {
 
             function updateBasisRenderer() {
                 // If the custom tab was last active, render the basis with the custom lattice size
-                const activeSectionId = document.querySelector('.menu-section.active').id;
-                if (activeSectionId === 'customSection') {
+                if (lastTabId === 'customSection') {
                     // Get custom lattice size values
                     const numCellsX = parseInt(customLengthXInput.value, 10);
                     const numCellsY = parseInt(customLengthYInput.value, 10);
                     const numCellsZ = parseInt(customLengthZInput.value, 10);
-                    // Use the current basis and a 1x1x1 cell for atom positions, but show the custom lattice grid
                     // We'll use the custom lattice parameters for the cell shape
                     const customParams = {
                         a: parseFloat(document.getElementById('customA').value),
@@ -688,7 +686,8 @@ window.onload = function() {
             });
 
 
-            // Tab switching logic
+            // Tab switching logic with lastTabId tracking
+            let lastTabId = 'bravaisSection';
             const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
             const menuSections = document.querySelectorAll('.menu-section');
             tabButtons.forEach(button => {
@@ -697,6 +696,7 @@ window.onload = function() {
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
+                    lastTabId = targetId;
                     const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.add('active');
