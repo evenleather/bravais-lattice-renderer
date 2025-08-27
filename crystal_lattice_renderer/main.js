@@ -686,18 +686,42 @@ window.onload = function() {
             });
 
 
-            // Tab switching logic with previousTabId tracking
+            // --- Tab switching logic for nested Structure tab ---
+            // Top-level tab (Structure)
+            const topTabButtons = document.querySelectorAll('.menu-nav-button-container > .menu-nav-button');
+            const topMenuSections = document.querySelectorAll('body > .menu-panel > .menu-section');
+            // Inner tabs (Bravais, Basis, Unit Cell, Custom) inside Structure
+            const structureSection = document.getElementById('structureSection');
+            const innerTabButtons = structureSection.querySelectorAll('.menu-nav-button-container .menu-nav-button');
+            const innerMenuSections = structureSection.querySelectorAll('.menu-section');
+
+            // Track previous tab for basis rendering logic
             let lastTabId = 'bravaisSection';
-            const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
-            const menuSections = document.querySelectorAll('.menu-section');
-            tabButtons.forEach(button => {
+
+            // Top-level tab switching (currently only Structure, but scalable)
+            topTabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    // Set lastTabId to the current tab before changing tabs
-                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    menuSections.forEach(section => section.classList.remove('active'));
+                    topTabButtons.forEach(btn => btn.classList.remove('active'));
+                    topMenuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
                     const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                });
+            });
+
+            // Inner tab switching (Bravais, Basis, Unit Cell, Custom)
+            innerTabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Set lastTabId to the current tab before changing tabs
+                    lastTabId = structureSection.querySelector('.menu-section.active')?.id;
+                    innerTabButtons.forEach(btn => btn.classList.remove('active'));
+                    innerMenuSections.forEach(section => section.classList.remove('active'));
+                    button.classList.add('active');
+                    const targetId = button.dataset.target;
+                    const targetSection = structureSection.querySelector(`#${targetId}`);
                     if (targetSection) {
                         targetSection.classList.add('active');
                     }

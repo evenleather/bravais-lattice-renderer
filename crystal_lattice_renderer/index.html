@@ -13,150 +13,149 @@
         
         <!-- Tab navigation buttons -->
         <div class="menu-nav-button-container">
-            <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
-            <button class="menu-nav-button" data-target="basisSection">Basis</button>
-            <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
-            <button class="menu-nav-button" data-target="customSection">Custom</button>
+            <button class="menu-nav-button active" data-target="structureSection">Structure</button>
         </div>
 
-        <!-- Section for Bravais lattice selection -->
-        <div id="bravaisSection" class="menu-section active">
-            <p>Select a Bravais lattice type to render its base structure.</p>
-            <h3>Cubic</h3>
-            <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
-            <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I</button>
-            <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F</button>
-            
-            <h3>Tetragonal</h3>
-            <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
-            <button class="menu-nav-button render-button" data-lattice="tetragonalI">Tetragonal I</button>
-            
-            <h3>Orthorhombic</h3>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicP">Orthorhombic P</button>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicA">Orthorhombic A</button>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicB">Orthorhombic B</button>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicC">Orthorhombic C</button>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicI">Orthorhombic I</button>
-            <button class="menu-nav-button render-button" data-lattice="orthorhombicF">Orthorhombic F</button>
-            
-            <h3>Monoclinic</h3>
-            <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
-            <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
-            
-            <h3>Triclinic</h3>
-            <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
+        <!-- New parent Structure tab -->
+        <div id="structureSection" class="menu-section active">
+            <div class="menu-nav-button-container" style="margin-bottom: 10px;">
+                <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
+                <button class="menu-nav-button" data-target="basisSection">Basis</button>
+                <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
+                <button class="menu-nav-button" data-target="customSection">Custom</button>
+            </div>
+            <div id="bravaisSection" class="menu-section active">
+                <p>Select a Bravais lattice type to render its base structure.</p>
+                <h3>Cubic</h3>
+                <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
+                <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I</button>
+                <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F</button>
+                
+                <h3>Tetragonal</h3>
+                <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
+                <button class="menu-nav-button render-button" data-lattice="tetragonalI">Tetragonal I</button>
+                
+                <h3>Orthorhombic</h3>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicP">Orthorhombic P</button>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicA">Orthorhombic A</button>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicB">Orthorhombic B</button>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicC">Orthorhombic C</button>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicI">Orthorhombic I</button>
+                <button class="menu-nav-button render-button" data-lattice="orthorhombicF">Orthorhombic F</button>
+                
+                <h3>Monoclinic</h3>
+                <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
+                <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
+                
+                <h3>Triclinic</h3>
+                <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
 
-            <h3>Trigonal</h3>
-            <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
-            
-            <h3>Hexagonal</h3>
-            <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
+                <h3>Trigonal</h3>
+                <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
+                
+                <h3>Hexagonal</h3>
+                <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
 
-            <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
-        </div>
+                <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
+            </div>
+            <div id="basisSection" class="menu-section">
+                <p>Define the atoms and their positions within the unit cell. You can add new atoms and remove existing ones.</p>
+                <h3>Basis Atoms</h3>
+                <ul id="basisAtomsList" class="basis-list"></ul>
 
-        <!-- Section for basis management -->
-        <div id="basisSection" class="menu-section">
-            <p>Define the atoms and their positions within the unit cell. You can add new atoms and remove existing ones.</p>
-            <h3>Basis Atoms</h3>
-            <ul id="basisAtomsList" class="basis-list"></ul>
-
-            <h3>Add New Atom</h3>
-            <div class="add-atom-form">
+                <h3>Add New Atom</h3>
+                <div class="add-atom-form">
+                    <div class="input-group">
+                        <label for="coordX">x</label>
+                        <input type="number" id="coordX" value="0.5" step="0.1" min="0" max="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="coordY">y</label>
+                        <input type="number" id="coordY" value="0.5" step="0.1" min="0" max="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="coordZ">z</label>
+                        <input type="number" id="coordZ" value="0.5" step="0.1" min="0" max="1">
+                    </div>
+                    <div class="color-label">
+                        <label for="atomColor">Color</label>
+                        <input type="color" id="atomColor" value="#ff0000">
+                    </div>
+                </div>
+                <button id="addAtomButton" class="menu-nav-button" style="margin-top: 10px;">Add Atom</button>
+            </div>
+            <div id="unitCellSection" class="menu-section">
+                <p>Adjust the size and appearance of the rendered crystal lattice.</p>
                 <div class="input-group">
-                    <label for="coordX">x</label>
-                    <input type="number" id="coordX" value="0.5" step="0.1" min="0" max="1">
+                    <label for="lengthX">Unit cells (x)</label>
+                    <input type="number" id="lengthX" value="1" step="1" min="1">
                 </div>
                 <div class="input-group">
-                    <label for="coordY">y</label>
-                    <input type="number" id="coordY" value="0.5" step="0.1" min="0" max="1">
+                    <label for="lengthY">Unit cells (y)</label>
+                    <input type="number" id="lengthY" value="1" step="1" min="1">
                 </div>
                 <div class="input-group">
-                    <label for="coordZ">z</label>
-                    <input type="number" id="coordZ" value="0.5" step="0.1" min="0" max="1">
+                    <label for="lengthZ">Unit cells (z)</label>
+                    <input type="number" id="lengthZ" value="1" step="1" min="1">
                 </div>
-                <div class="color-label">
-                    <label for="atomColor">Color</label>
-                    <input type="color" id="atomColor" value="#ff0000">
+                <div class="toggle-group">
+                    <input type="checkbox" id="showFacesToggle">
+                    <label for="showFacesToggle">Show transparent faces</label>
                 </div>
             </div>
-            <button id="addAtomButton" class="menu-nav-button" style="margin-top: 10px;">Add Atom</button>
-        </div>
-
-        <!-- Section for unit cell configuration -->
-        <div id="unitCellSection" class="menu-section">
-            <p>Adjust the size and appearance of the rendered crystal lattice.</p>
-            <div class="input-group">
-                <label for="lengthX">Unit cells (x)</label>
-                <input type="number" id="lengthX" value="1" step="1" min="1">
+            <div id="customSection" class="menu-section">
+                <p>Define your own lattice parameters to render a custom unit cell.</p>
+                <div class="input-group">
+                    <label for="customA">Lattice parameter a</label>
+                    <input type="number" id="customA" value="1" step="0.1" min="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="customB">Lattice parameter b</label>
+                    <input type="number" id="customB" value="1.5" step="0.1" min="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="customC">Lattice parameter c</label>
+                    <input type="number" id="customC" value="2" step="0.1" min="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="customAlpha">Angle &alpha; ($^\circ$)</label>
+                    <input type="number" id="customAlpha" value="90" step="1" min="1" max="180">
+                </div>
+                <div class="input-group">
+                    <label for="customBeta">Angle &beta; ($^\circ$)</label>
+                    <input type="number" id="customBeta" value="90" step="1" min="1" max="180">
+                </div>
+                <div class="input-group">
+                    <label for="customGamma">Angle &gamma; ($^\circ$)</label>
+                    <input type="number" id="customGamma" value="90" step="1" min="1" max="180">
+                </div>
+                <div class="input-group">
+                    <label for="customCentering">Centering Type</label>
+                    <select id="customCentering">
+                        <option value="P">P (Primitive)</option>
+                        <option value="I">I (Body-centered)</option>
+                        <option value="F">F (Face-centered)</option>
+                        <option value="A">A (A-face centered)</option>
+                        <option value="B">B (B-face centered)</option>
+                        <option value="C">C (C-face centered)</option>
+                        <option value="R">R (Rhombohedral)</option>
+                    </select>
+                </div>
+                <!-- New input fields for custom lattice size -->
+                <div class="input-group">
+                    <label for="customLengthX">Lattice Size (x)</label>
+                    <input type="number" id="customLengthX" value="1" step="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="customLengthY">Lattice Size (y)</label>
+                    <input type="number" id="customLengthY" value="1" step="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="customLengthZ">Lattice Size (z)</label>
+                    <input type="number" id="customLengthZ" value="1" step="1" min="1">
+                </div>
+                <button id="renderCustomButton" class="menu-nav-button" style="margin-top: 10px;">Render Custom Lattice</button>
             </div>
-            <div class="input-group">
-                <label for="lengthY">Unit cells (y)</label>
-                <input type="number" id="lengthY" value="1" step="1" min="1">
-            </div>
-            <div class="input-group">
-                <label for="lengthZ">Unit cells (z)</label>
-                <input type="number" id="lengthZ" value="1" step="1" min="1">
-            </div>
-            <div class="toggle-group">
-                <input type="checkbox" id="showFacesToggle">
-                <label for="showFacesToggle">Show transparent faces</label>
-            </div>
-        </div>
-        
-        <!-- New section for custom lattice parameters -->
-        <div id="customSection" class="menu-section">
-            <p>Define your own lattice parameters to render a custom unit cell.</p>
-            <div class="input-group">
-                <label for="customA">Lattice parameter a</label>
-                <input type="number" id="customA" value="1" step="0.1" min="0.1">
-            </div>
-            <div class="input-group">
-                <label for="customB">Lattice parameter b</label>
-                <input type="number" id="customB" value="1.5" step="0.1" min="0.1">
-            </div>
-            <div class="input-group">
-                <label for="customC">Lattice parameter c</label>
-                <input type="number" id="customC" value="2" step="0.1" min="0.1">
-            </div>
-            <div class="input-group">
-                <label for="customAlpha">Angle &alpha; ($^\circ$)</label>
-                <input type="number" id="customAlpha" value="90" step="1" min="1" max="180">
-            </div>
-            <div class="input-group">
-                <label for="customBeta">Angle &beta; ($^\circ$)</label>
-                <input type="number" id="customBeta" value="90" step="1" min="1" max="180">
-            </div>
-            <div class="input-group">
-                <label for="customGamma">Angle &gamma; ($^\circ$)</label>
-                <input type="number" id="customGamma" value="90" step="1" min="1" max="180">
-            </div>
-            <div class="input-group">
-                <label for="customCentering">Centering Type</label>
-                <select id="customCentering">
-                    <option value="P">P (Primitive)</option>
-                    <option value="I">I (Body-centered)</option>
-                    <option value="F">F (Face-centered)</option>
-                    <option value="A">A (A-face centered)</option>
-                    <option value="B">B (B-face centered)</option>
-                    <option value="C">C (C-face centered)</option>
-                    <option value="R">R (Rhombohedral)</option>
-                </select>
-            </div>
-            <!-- New input fields for custom lattice size -->
-            <div class="input-group">
-                <label for="customLengthX">Lattice Size (x)</label>
-                <input type="number" id="customLengthX" value="1" step="1" min="1">
-            </div>
-            <div class="input-group">
-                <label for="customLengthY">Lattice Size (y)</label>
-                <input type="number" id="customLengthY" value="1" step="1" min="1">
-            </div>
-            <div class="input-group">
-                <label for="customLengthZ">Lattice Size (z)</label>
-                <input type="number" id="customLengthZ" value="1" step="1" min="1">
-            </div>
-            <button id="renderCustomButton" class="menu-nav-button" style="margin-top: 10px;">Render Custom Lattice</button>
         </div>
     </div>
 
