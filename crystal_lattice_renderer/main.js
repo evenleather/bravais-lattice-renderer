@@ -701,20 +701,25 @@ window.onload = function() {
             // Top-level tab switching (currently only Structure, but scalable)
             topTabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    topTabButtons.forEach(btn => btn.classList.remove('active'));
-                    topMenuSections.forEach(section => section.classList.remove('active'));
-                    button.classList.add('active');
-                    const targetId = button.dataset.target;
-                    const targetSection = document.getElementById(targetId);
-                    if (targetSection) {
-                        targetSection.classList.add('active');
+                    // Only toggle top-level tabs if not already active
+                    if (!button.classList.contains('active')) {
+                        topTabButtons.forEach(btn => btn.classList.remove('active'));
+                        topMenuSections.forEach(section => section.classList.remove('active'));
+                        button.classList.add('active');
+                        const targetId = button.dataset.target;
+                        const targetSection = document.getElementById(targetId);
+                        if (targetSection) {
+                            targetSection.classList.add('active');
+                        }
                     }
                 });
             });
 
             // Inner tab switching (Bravais, Basis, Unit Cell, Custom)
             innerTabButtons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (e) => {
+                    // Prevent bubbling to parent menu-nav-button-container
+                    e.stopPropagation();
                     // Set lastTabId to the current tab before changing tabs
                     lastTabId = structureSection.querySelector('.menu-section.active')?.id;
                     innerTabButtons.forEach(btn => btn.classList.remove('active'));
@@ -735,6 +740,14 @@ window.onload = function() {
                         currentCamera = camera;
                         updateLatticeRenderer();
                     }
+                    // Always keep the parent Structure tab active
+                    topTabButtons.forEach(btn => {
+                        if (btn.dataset.target === 'structureSection') {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
                 });
             });
 
