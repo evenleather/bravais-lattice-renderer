@@ -965,28 +965,47 @@ function updatePointsDistance() {
         beta = params.beta;
         gamma = params.gamma;
     }
-    const cart1 = fractionalToCartesian(points[0], a, b, c, alpha, beta, gamma);
-    const cart2 = fractionalToCartesian(points[1], a, b, c, alpha, beta, gamma);
-    const dx = cart1.x - cart2.x;
-    const dy = cart1.y - cart2.y;
-    const dz = cart1.z - cart2.z;
-    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    // Metric tensor for the lattice
+    const alphaRad = alpha * Math.PI / 180;
+    const betaRad = beta * Math.PI / 180;
+    const gammaRad = gamma * Math.PI / 180;
+    const cosAlpha = Math.cos(alphaRad);
+    const cosBeta = Math.cos(betaRad);
+    const cosGamma = Math.cos(gammaRad);
+    // Metric tensor G
+    const G = [
+        [a*a, a*b*cosGamma, a*c*cosBeta],
+        [a*b*cosGamma, b*b, b*c*cosAlpha],
+        [a*c*cosBeta, b*c*cosAlpha, c*c]
+    ];
+    // Difference vector in fractional coordinates
+    const dx = points[0].x - points[1].x;
+    const dy = points[0].y - points[1].y;
+    const dz = points[0].z - points[1].z;
+    // Distance squared: d^2 = v^T G v
+    const d2 =
+        dx*dx*G[0][0] + 2*dx*dy*G[0][1] + 2*dx*dz*G[0][2] +
+        dy*dy*G[1][1] + 2*dy*dz*G[1][2] +
+        dz*dz*G[2][2];
+    const dist = Math.sqrt(Math.abs(d2));
     pointsDistanceDisplay.textContent = `Distance between points: ${dist.toFixed(4)} Å`;
 }
 
-// Patch renderPointsList to call updatePointsDistance
-const originalRenderPointsList = renderPointsList;
-renderPointsList = function() {
-    originalRenderPointsList();
-    updatePointsDistance();
-};
-
-// Patch addPointButton and pointsList event listeners to update distance
-const originalAddPointClick = addPointButton.onclick;
-addPointButton.addEventListener('click', function() {
-    updatePointsDistance();
-});
-pointsList.addEventListener('click', function() {
-    updatePointsDistance();
-});
+// Attach listeners to all lattice parameter inputs to update distance automatically
+{
+    const ids = [
+        'lengthX', 'lengthY', 'lengthZ',
+        'showFacesToggle',
+        'customA', 'customB', 'customC',
+        'customAlpha', 'customBeta', 'customGamma', 'customCentering',
+        'customLengthX', 'customLengthY', 'customLengthZ'
+    ];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePointsDistance);
+    });
+}
+// Bravais lattice type
+const bravaisButtons = document.querySelectorAll('#bravaisSection .render-button');
+bravaisButtons.forEach(btn => btn.addEventListener('click', updatePointsDistance));
         };
