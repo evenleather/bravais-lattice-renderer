@@ -3,7 +3,6 @@ window.onload = function() {
             let points = [];
             const addPointButton = document.getElementById('addPointButton');
             const pointsList = document.getElementById('pointsList');
-            const multiPointCountInput = document.getElementById('multiPointCount');
             const pointXInput = document.getElementById('pointX');
             const pointYInput = document.getElementById('pointY');
             const pointZInput = document.getElementById('pointZ');
@@ -12,12 +11,16 @@ window.onload = function() {
                 pointsList.innerHTML = '';
                 points.forEach((pt, idx) => {
                     const li = document.createElement('li');
-                    li.style.display = 'flex';
-                    li.style.alignItems = 'center';
-                    li.style.gap = '10px';
+                    li.classList.add('basis-item');
+                    li.dataset.idx = idx;
+                    const coords = `(${pt.x.toFixed(4)}, ${pt.y.toFixed(4)}, ${pt.z.toFixed(4)})`;
                     li.innerHTML = `
-                        <span>(${pt.x.toFixed(3)}, ${pt.y.toFixed(3)}, ${pt.z.toFixed(3)})</span>
-                        <button data-idx="${idx}" style="background:#ff4444;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;">Remove</button>
+                        <div>
+                            <p class="atom-coordinates">${coords}</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button data-idx="${idx}">Remove</button>
+                        </div>
                     `;
                     pointsList.appendChild(li);
                 });
@@ -27,14 +30,11 @@ window.onload = function() {
                 const x = parseFloat(pointXInput.value);
                 const y = parseFloat(pointYInput.value);
                 const z = parseFloat(pointZInput.value);
-                const count = parseInt(multiPointCountInput.value, 10) || 1;
                 if (isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 1 || y < 0 || y > 1 || z < 0 || z > 1) {
                     alert('Please enter valid Miller coordinates (0-1) for x, y, z.');
                     return;
                 }
-                for (let i = 0; i < count; i++) {
-                    points.push({ x, y, z });
-                }
+                points.push({ x, y, z });
                 renderPointsList();
             });
 
