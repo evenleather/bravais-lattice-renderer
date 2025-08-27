@@ -753,8 +753,13 @@ window.onload = function() {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
                         updateBasisRenderer();
-                    } else if (targetId === 'directionsSection') {
+                    } else if (
+                        targetId === 'directionsSection' ||
+                        targetId === 'pointsSection' ||
+                        targetId === 'planesSection'
+                    ) {
                         // Do not change the scene or renderer, just show the tab
+                        // This preserves the current scene (custom, basis, or normal lattice)
                     } else {
                         currentScene = scene;
                         currentCamera = camera;
