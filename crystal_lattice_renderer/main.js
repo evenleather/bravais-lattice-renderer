@@ -45,7 +45,13 @@ window.onload = function() {
                 updatePointsDistance();
                 // Only update the rendering, do not change the scene/camera
                 if (typeof updateLatticeRenderer === 'function') {
+                    // Save current scene/camera
+                    const prevScene = currentScene;
+                    const prevCamera = currentCamera;
                     updateLatticeRenderer();
+                    // Restore scene/camera
+                    currentScene = prevScene;
+                    currentCamera = prevCamera;
                 }
             }
 
