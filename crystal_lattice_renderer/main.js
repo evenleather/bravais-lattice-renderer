@@ -42,6 +42,8 @@ window.onload = function() {
                     addPointButton.disabled = false;
                     pointsLimitMsg.textContent = '';
                 }
+                updatePointsDistance();
+                updateLatticeRenderer();
             }
 
             addPointButton.addEventListener('click', () => {
