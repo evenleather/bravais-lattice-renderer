@@ -579,7 +579,7 @@ window.onload = function() {
 
             function updateBasisRenderer() {
                 // If the previous tab was customSection, render the basis with the custom lattice size
-                if (previousTabId === 'customSection') {
+                if (lastTabId === 'customSection') {
                     // Get custom lattice size values
                     const numCellsX = parseInt(customLengthXInput.value, 10);
                     const numCellsY = parseInt(customLengthYInput.value, 10);
@@ -688,21 +688,15 @@ window.onload = function() {
 
             // Tab switching logic with previousTabId tracking
             let lastTabId = 'bravaisSection';
-            let previousTabId = 'bravaisSection';
             const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
             const menuSections = document.querySelectorAll('.menu-section');
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    // Find the currently active tab before switching
-                    const currentActiveSection = document.querySelector('.menu-section.active');
-                    if (currentActiveSection) {
-                        previousTabId = currentActiveSection.id;
-                    }
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    // Set lastTabId to the current tab before changing tabs
+                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
-                    lastTabId = targetId;
                     const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.add('active');
