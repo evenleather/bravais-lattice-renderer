@@ -741,6 +741,13 @@ window.onload = function() {
             customLengthXInput.addEventListener('input', updateLatticeRenderer);
             customLengthYInput.addEventListener('input', updateLatticeRenderer);
             customLengthZInput.addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customA').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customB').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customC').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customAlpha').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customBeta').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customGamma').addEventListener('input', updateLatticeRenderer);
+            document.getElementById('customCentering').addEventListener('change', updateLatticeRenderer);
 
 
             function displayLatticeParams(latticeType, customParams = null) {
