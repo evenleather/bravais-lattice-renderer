@@ -1,1 +1,183 @@
+body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            height: 100vh;
+        }
 
+        /* Styles for the left-hand menu */
+        .menu-panel {
+            width: 25%;
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+        
+        /* Styles for the tab navigation buttons */
+        .menu-nav-button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-nav-button {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .menu-nav-button:hover {
+            background-color: #555;
+        }
+
+        .menu-nav-button.active {
+            background-color: #007bff;
+        }
+        
+        /* Styles for menu sections */
+        .menu-section {
+            display: none; /* Sections are hidden by default */
+            flex-direction: column;
+            gap: 10px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .menu-section.active {
+            display: flex; /* The active section is displayed */
+        }
+
+        /* Styles for form inputs */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .input-group label {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .input-group input[type="number"] {
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input-group input[type="color"] {
+            height: 40px;
+            padding: 4px;
+            border: 1px solid #555;
+            background-color: #333;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input-group select {
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Styles for the transparent faces toggle */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-group label {
+            font-size: 0.9rem;
+            color: #ccc;
+            cursor: pointer;
+        }
+        
+        /* Styles for the right-hand renderer */
+        .renderer-container {
+            width: 75%;
+            position: relative;
+            background-color: #1a1a1a;
+        }
+
+        /* Styles for the new Basis UI elements */
+        .basis-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .basis-item {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+
+        .basis-item button {
+            background-color: #ff4444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .basis-item button:hover {
+            background-color: #cc0000;
+        }
+
+        .atom-label {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .atom-coordinates {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .add-atom-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .add-atom-form input {
+            width: 100%;
+        }
+
+        .color-label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
