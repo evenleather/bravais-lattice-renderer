@@ -711,6 +711,18 @@ window.onload = function() {
                         if (targetSection) {
                             targetSection.classList.add('active');
                         }
+                        // Always show the last selected inner tab when Structure is activated
+                        if (targetId === 'structureSection') {
+                            // If no inner tab is active, activate the first one
+                            let anyActive = false;
+                            innerMenuSections.forEach(section => {
+                                if (section.classList.contains('active')) anyActive = true;
+                            });
+                            if (!anyActive && innerMenuSections.length > 0) {
+                                innerTabButtons[0].classList.add('active');
+                                innerMenuSections[0].classList.add('active');
+                            }
+                        }
                     }
                 });
             });
@@ -740,7 +752,7 @@ window.onload = function() {
                         currentCamera = camera;
                         updateLatticeRenderer();
                     }
-                    // Always keep the parent Structure tab active
+                    // Always keep the parent Structure tab active and visible
                     topTabButtons.forEach(btn => {
                         if (btn.dataset.target === 'structureSection') {
                             btn.classList.add('active');
@@ -748,6 +760,8 @@ window.onload = function() {
                             btn.classList.remove('active');
                         }
                     });
+                    // Always keep the structureSection visible
+                    structureSection.classList.add('active');
                 });
             });
 
