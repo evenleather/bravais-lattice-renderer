@@ -244,11 +244,22 @@ window.onload = function() {
                     latticeGroup.add(sphere);
                 });
                 // Add points from the Points tab as bright pink atoms in the main scene
+                // Render points as relative positions using lattice parameters
                 if (Array.isArray(points)) {
+                    // Use the lattice parameters for this scene
+                    const a = a1.length();
+                    const b = a2.length();
+                    const c = a3.length();
+                    // Calculate angles
+                    const alpha = Math.acos(a2.dot(a3) / (a2.length() * a3.length())) * 180 / Math.PI;
+                    const beta = Math.acos(a1.dot(a3) / (a1.length() * a3.length())) * 180 / Math.PI;
+                    const gamma = Math.acos(a1.dot(a2) / (a1.length() * a2.length())) * 180 / Math.PI;
                     points.forEach(pt => {
+                        // Convert fractional to cartesian
+                        const cart = fractionalToCartesian(pt, a, b, c, alpha, beta, gamma);
                         const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff33cc') });
                         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                        sphere.position.set(pt.x, pt.y, pt.z);
+                        sphere.position.set(cart.x, cart.y, cart.z);
                         latticeGroup.add(sphere);
                     });
                 }
