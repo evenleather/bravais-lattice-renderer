@@ -65,36 +65,6 @@ window.onload = function() {
                 const zGeometry = new THREE.BufferGeometry().setFromPoints(zPoints);
                 const zAxis = new THREE.Line(zGeometry, zMaterial);
                 axesGroup.add(zAxis);
-                
-                // Add labels to the axes using THREE.Sprite
-                const labelCanvas = document.createElement('canvas');
-                const context = labelCanvas.getContext('2d');
-                context.font = 'Bold 20px Arial';
-
-                function createLabelSprite(text, color) {
-                    context.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
-                    context.fillStyle = color;
-                    context.fillText(text, 0, 20);
-
-                    const texture = new THREE.CanvasTexture(labelCanvas);
-                    const material = new THREE.SpriteMaterial({ map: texture });
-                    const sprite = new THREE.Sprite(material);
-                    sprite.scale.set(0.5, 0.5, 1); // Adjust size as needed
-                    return sprite;
-                }
-                
-                const xLabel = createLabelSprite('X', '#ff0000');
-                xLabel.position.set(axisLength, 0, 0);
-                axesGroup.add(xLabel);
-
-                const yLabel = createLabelSprite('Y', '#00ff00');
-                yLabel.position.set(0, axisLength, 0);
-                axesGroup.add(yLabel);
-
-                const zLabel = createLabelSprite('Z', '#0000ff');
-                zLabel.position.set(0, 0, axisLength);
-                axesGroup.add(zLabel);
-
                 return axesGroup;
             }
 
