@@ -243,6 +243,15 @@ window.onload = function() {
                     sphere.position.set(atom.position.x, atom.position.y, atom.position.z);
                     latticeGroup.add(sphere);
                 });
+                // Add points from the Points tab as bright pink atoms in the main scene
+                if (Array.isArray(points)) {
+                    points.forEach(pt => {
+                        const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff33cc') });
+                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                        sphere.position.set(pt.x, pt.y, pt.z);
+                        latticeGroup.add(sphere);
+                    });
+                }
                 
                 const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
                 const lineGeometry = new THREE.BufferGeometry().setFromPoints(lines);
