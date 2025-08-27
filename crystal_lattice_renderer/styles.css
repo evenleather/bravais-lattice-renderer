@@ -43,15 +43,7 @@ body {
         }
 
         .menu-nav-button.active {
-            background-color: #007bff !important;
-            color: #fff;
-        }
-
-        /* Ensure nested tab buttons under Structure also show as blue when active */
-        #structureSection .menu-nav-button-container .menu-nav-button.active {
-            background-color: #007bff !important;
-            color: #fff !important;
-            border: 2px solid #0056b3;
+            background-color: #007bff;
         }
         
         /* Styles for menu sections */

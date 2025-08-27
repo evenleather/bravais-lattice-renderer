@@ -686,59 +686,18 @@ window.onload = function() {
             });
 
 
-            // --- Tab switching logic for nested Structure tab ---
-            // Top-level tab (Structure)
-            const topTabButtons = document.querySelectorAll('.menu-nav-button-container > .menu-nav-button');
-            const topMenuSections = document.querySelectorAll('body > .menu-panel > .menu-section');
-            // Inner tabs (Bravais, Basis, Unit Cell, Custom) inside Structure
-            const structureSection = document.getElementById('structureSection');
-            const innerTabButtons = structureSection.querySelectorAll('.menu-nav-button-container .menu-nav-button');
-            const innerMenuSections = structureSection.querySelectorAll('.menu-section');
-
-            // Track previous tab for basis rendering logic
+            // Tab switching logic with previousTabId tracking
             let lastTabId = 'bravaisSection';
-
-            // Top-level tab switching (currently only Structure, but scalable)
-            topTabButtons.forEach(button => {
+            const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
+            const menuSections = document.querySelectorAll('.menu-section');
+            tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    // Only toggle top-level tabs if not already active
-                    if (!button.classList.contains('active')) {
-                        topTabButtons.forEach(btn => btn.classList.remove('active'));
-                        topMenuSections.forEach(section => section.classList.remove('active'));
-                        button.classList.add('active');
-                        const targetId = button.dataset.target;
-                        const targetSection = document.getElementById(targetId);
-                        if (targetSection) {
-                            targetSection.classList.add('active');
-                        }
-                        // Always show the last selected inner tab when Structure is activated
-                        if (targetId === 'structureSection') {
-                            // If no inner tab is active, activate the first one
-                            let anyActive = false;
-                            innerMenuSections.forEach(section => {
-                                if (section.classList.contains('active')) anyActive = true;
-                            });
-                            if (!anyActive && innerMenuSections.length > 0) {
-                                innerTabButtons[0].classList.add('active');
-                                innerMenuSections[0].classList.add('active');
-                            }
-                        }
-                    }
-                });
-            });
-
-            // Inner tab switching (Bravais, Basis, Unit Cell, Custom)
-            innerTabButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    // Prevent bubbling to parent menu-nav-button-container
-                    e.stopPropagation();
                     // Set lastTabId to the current tab before changing tabs
-                    lastTabId = structureSection.querySelector('.menu-section.active')?.id;
-                    innerTabButtons.forEach(btn => btn.classList.remove('active'));
-                    innerMenuSections.forEach(section => section.classList.remove('active'));
+                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
                     const targetId = button.dataset.target;
-                    const targetSection = structureSection.querySelector(`#${targetId}`);
+                    const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.add('active');
                     }
@@ -752,16 +711,6 @@ window.onload = function() {
                         currentCamera = camera;
                         updateLatticeRenderer();
                     }
-                    // Always keep the parent Structure tab active and visible
-                    topTabButtons.forEach(btn => {
-                        if (btn.dataset.target === 'structureSection') {
-                            btn.classList.add('active');
-                        } else {
-                            btn.classList.remove('active');
-                        }
-                    });
-                    // Always keep the structureSection visible
-                    structureSection.classList.add('active');
                 });
             });
 
