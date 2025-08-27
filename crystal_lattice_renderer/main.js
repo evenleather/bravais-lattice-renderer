@@ -1,4 +1,50 @@
 window.onload = function() {
+            // --- Points Tab Functionality ---
+            let points = [];
+            const addPointButton = document.getElementById('addPointButton');
+            const pointsList = document.getElementById('pointsList');
+            const multiPointCountInput = document.getElementById('multiPointCount');
+            const pointXInput = document.getElementById('pointX');
+            const pointYInput = document.getElementById('pointY');
+            const pointZInput = document.getElementById('pointZ');
+
+            function renderPointsList() {
+                pointsList.innerHTML = '';
+                points.forEach((pt, idx) => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.alignItems = 'center';
+                    li.style.gap = '10px';
+                    li.innerHTML = `
+                        <span>(${pt.x.toFixed(3)}, ${pt.y.toFixed(3)}, ${pt.z.toFixed(3)})</span>
+                        <button data-idx="${idx}" style="background:#ff4444;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;">Remove</button>
+                    `;
+                    pointsList.appendChild(li);
+                });
+            }
+
+            addPointButton.addEventListener('click', () => {
+                const x = parseFloat(pointXInput.value);
+                const y = parseFloat(pointYInput.value);
+                const z = parseFloat(pointZInput.value);
+                const count = parseInt(multiPointCountInput.value, 10) || 1;
+                if (isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 1 || y < 0 || y > 1 || z < 0 || z > 1) {
+                    alert('Please enter valid Miller coordinates (0-1) for x, y, z.');
+                    return;
+                }
+                for (let i = 0; i < count; i++) {
+                    points.push({ x, y, z });
+                }
+                renderPointsList();
+            });
+
+            pointsList.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' && e.target.dataset.idx !== undefined) {
+                    const idx = parseInt(e.target.dataset.idx, 10);
+                    points.splice(idx, 1);
+                    renderPointsList();
+                }
+            });
             // Get the container for the renderer and UI elements
             const rendererContainer = document.getElementById('rendererContainer');
             const latticeParamsDisplay = document.getElementById('latticeParamsDisplay');
