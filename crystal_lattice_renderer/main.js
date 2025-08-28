@@ -1,4 +1,6 @@
 window.onload = function() {
+    // Track which lattice type is active: 'custom' or 'bravais'
+    let activeLatticeType = 'bravais';
             // Get the container for the renderer and UI elements
             const rendererContainer = document.getElementById('rendererContainer');
             const latticeParamsDisplay = document.getElementById('latticeParamsDisplay');
@@ -529,11 +531,9 @@ window.onload = function() {
             }
 
             function updateLatticeRenderer() {
-                const activeSectionId = document.querySelector('.menu-section.active').id;
                 let latticeData;
                 let numCellsX, numCellsY, numCellsZ;
-
-                if (activeSectionId === 'customSection') {
+                if (activeLatticeType === 'custom') {
                     const customParams = {
                         a: parseFloat(document.getElementById('customA').value),
                         b: parseFloat(document.getElementById('customB').value),
@@ -543,48 +543,40 @@ window.onload = function() {
                         gamma: parseFloat(document.getElementById('customGamma').value),
                         centeringType: document.getElementById('customCentering').value
                     };
-                    // Use new custom size inputs
                     numCellsX = parseInt(customLengthXInput.value, 10);
                     numCellsY = parseInt(customLengthYInput.value, 10);
                     numCellsZ = parseInt(customLengthZInput.value, 10);
-                    
                     latticeData = generateLatticePoints(customParams, numCellsX, numCellsY, numCellsZ);
                     displayLatticeParams('custom', customParams);
                 } else {
                     const selectedLatticeType = getSelectedLatticeType();
-                    // Use existing unit cell inputs for Bravais lattices
                     numCellsX = parseInt(document.getElementById('lengthX').value, 10);
                     numCellsY = parseInt(document.getElementById('lengthY').value, 10);
                     numCellsZ = parseInt(document.getElementById('lengthZ').value, 10);
-                    
                     latticeData = generateLatticePoints(lattices[selectedLatticeType], numCellsX, numCellsY, numCellsZ);
                     displayLatticeParams(selectedLatticeType);
                 }
-                
                 const shouldRenderFaces = document.getElementById('showFacesToggle').checked;
                 const allAtoms = generateBasisAtLatticePoints(latticeData.points, basis, latticeData.a1, latticeData.a2, latticeData.a3);
-                
-                const renderData = { 
-                    points: allAtoms, 
-                    lines: latticeData.lines, 
-                    numCellsX: latticeData.numCellsX, 
-                    numCellsY: latticeData.numCellsY, 
-                    numCellsZ: latticeData.numCellsZ, 
-                    a1: latticeData.a1, 
-                    a2: latticeData.a2, 
-                    a3: latticeData.a3 
+                const renderData = {
+                    points: allAtoms,
+                    lines: latticeData.lines,
+                    numCellsX: latticeData.numCellsX,
+                    numCellsY: latticeData.numCellsY,
+                    numCellsZ: latticeData.numCellsZ,
+                    a1: latticeData.a1,
+                    a2: latticeData.a2,
+                    a3: latticeData.a3
                 };
                 renderLattice(renderData, shouldRenderFaces, latticeData.centeringType);
             }
 
             function updateBasisRenderer() {
-                // If the previous tab was customSection, render the basis with the custom lattice size
-                if (lastTabId === 'customSection') {
-                    // Get custom lattice size values
+                // Use the activeLatticeType to determine which params to use
+                if (activeLatticeType === 'custom') {
                     const numCellsX = parseInt(customLengthXInput.value, 10);
                     const numCellsY = parseInt(customLengthYInput.value, 10);
                     const numCellsZ = parseInt(customLengthZInput.value, 10);
-                    // We'll use the custom lattice parameters for the cell shape
                     const customParams = {
                         a: parseFloat(document.getElementById('customA').value),
                         b: parseFloat(document.getElementById('customB').value),
@@ -594,27 +586,22 @@ window.onload = function() {
                         gamma: parseFloat(document.getElementById('customGamma').value),
                         centeringType: document.getElementById('customCentering').value
                     };
-                    // Generate lattice points for the custom lattice
                     const latticeData = generateLatticePoints(customParams, numCellsX, numCellsY, numCellsZ);
-                    // Render the basis atoms at the origin cell only (as in the original basis view)
-                    // But show the custom lattice grid
                     clearGroup(basisLatticeGroup);
                     basisLatticeGroup.add(basisAxesGroup);
-                    // Draw the lattice grid
                     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
                     const lineGeometry = new THREE.BufferGeometry().setFromPoints(latticeData.lines);
                     const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
                     basisLatticeGroup.add(lineSegments);
-                    // Draw the basis atoms in the first cell (as before)
                     const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
                     basis.forEach(atom => {
                         const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
                         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
                         sphere.position.copy(
-                        latticeData.a1.clone().multiplyScalar(atom.position.x)
-                        .add(latticeData.a2.clone().multiplyScalar(atom.position.y))
-                        .add(latticeData.a3.clone().multiplyScalar(atom.position.z))
-                        );                  
+                            latticeData.a1.clone().multiplyScalar(atom.position.x)
+                            .add(latticeData.a2.clone().multiplyScalar(atom.position.y))
+                            .add(latticeData.a3.clone().multiplyScalar(atom.position.z))
+                        );
                         basisLatticeGroup.add(sphere);
                     });
                     renderBasisAtomsList();
@@ -690,22 +677,25 @@ window.onload = function() {
             });
 
 
-            // Tab switching logic with previousTabId tracking
-            let lastTabId = 'bravaisSection';
+            // Tab switching logic with activeLatticeType tracking
             const tabButtons = document.querySelectorAll('.menu-nav-button-container .menu-nav-button');
             const menuSections = document.querySelectorAll('.menu-section');
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    // Set lastTabId to the current tab before changing tabs
-                    lastTabId = document.querySelector('.menu-section.active')?.id;                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    // Determine which lattice type is being selected
+                    const targetId = button.dataset.target;
+                    if (targetId === 'customSection') {
+                        activeLatticeType = 'custom';
+                    } else if (targetId === 'bravaisSection' || targetId === 'unitCellSection') {
+                        activeLatticeType = 'bravais';
+                    }
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
                     menuSections.forEach(section => section.classList.remove('active'));
                     button.classList.add('active');
-                    const targetId = button.dataset.target;
                     const targetSection = document.getElementById(targetId);
                     if (targetSection) {
                         targetSection.classList.add('active');
                     }
-
                     if (targetId === 'basisSection') {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
