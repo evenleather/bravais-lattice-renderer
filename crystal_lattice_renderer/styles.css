@@ -15,6 +15,11 @@ body {
             padding: 20px;
             box-sizing: border-box;
             display: flex;
+            /* Ensure the main flex container and its children fill the viewport height */
+            .main-flex-container {
+                display: flex;
+                height: 100vh;
+            }
             flex-direction: column;
             gap: 20px;
             overflow-y: auto;
