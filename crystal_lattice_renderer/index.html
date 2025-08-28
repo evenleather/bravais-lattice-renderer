@@ -7,69 +7,77 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="main-flex-container">
-        <!-- Main container for the left-hand menu and right-hand renderer -->
-        <div class="menu-panel">
-            <h2>Crystal Structure Renderer</h2>
-            <!-- Tab navigation buttons -->
-            <div class="menu-nav-button-container">
-                <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
-                <button class="menu-nav-button" data-target="basisSection">Basis</button>
-                <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
-                <button class="menu-nav-button" data-target="customSection">Custom</button>
-                <button class="menu-nav-button" data-target="mathSection">Math Section</button>
+    <!-- Main container for the left-hand menu and right-hand renderer -->
+    <div class="menu-panel">
+        <h2>Crystal Structure Renderer</h2>
+        
+        <!-- Tab navigation buttons -->
+        <div class="menu-nav-button-container">
+            <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
+            <button class="menu-nav-button" data-target="basisSection">Basis</button>
+            <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
+            <button class="menu-nav-button" data-target="customSection">Custom</button>
+            <button class="menu-nav-button" data-target="mathSection">Math Section</button>
+        </div>
+
+        <!-- Section for Bravais lattice selection -->
+        <div id="bravaisSection" class="menu-section active">
+            <p>Select a Bravais lattice type to render its base structure.</p>
+            <h3>Cubic</h3>
+            <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
+            <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I</button>
+            <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F</button>
+            
+            <h3>Tetragonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
+            <button class="menu-nav-button render-button" data-lattice="tetragonalI">Tetragonal I</button>
+            
+            <h3>Orthorhombic</h3>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicP">Orthorhombic P</button>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicA">Orthorhombic A</button>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicB">Orthorhombic B</button>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicC">Orthorhombic C</button>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicI">Orthorhombic I</button>
+            <button class="menu-nav-button render-button" data-lattice="orthorhombicF">Orthorhombic F</button>
+            
+            <h3>Monoclinic</h3>
+            <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
+            <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
+            
+            <h3>Triclinic</h3>
+            <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
+
+            <h3>Trigonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
+            
+            <h3>Hexagonal</h3>
+            <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
+
+            <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
+        </div>
+        <!-- Section for unit cell configuration -->
+        <div id="unitCellSection" class="menu-section">
+            <p>Adjust the size and appearance of the rendered crystal lattice.</p>
+            <div class="input-group">
+                <label for="lengthX">Unit cells (x)</label>
+                <input type="number" id="lengthX" value="1" step="1" min="1">
             </div>
-            <!-- Section for Bravais lattice selection -->
-            <div id="bravaisSection" class="menu-section active">
-                <p>Select a Bravais lattice type to render its base structure.</p>
-                <h3>Cubic</h3>
-                <button class="menu-nav-button render-button active" data-lattice="cubicP">Cubic P</button>
-                <button class="menu-nav-button render-button" data-lattice="cubicI">Cubic I</button>
-                <button class="menu-nav-button render-button" data-lattice="cubicF">Cubic F</button>
-                <h3>Tetragonal</h3>
-                <button class="menu-nav-button render-button" data-lattice="tetragonalP">Tetragonal P</button>
-                <button class="menu-nav-button render-button" data-lattice="tetragonalI">Tetragonal I</button>
-                <h3>Orthorhombic</h3>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicP">Orthorhombic P</button>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicA">Orthorhombic A</button>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicB">Orthorhombic B</button>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicC">Orthorhombic C</button>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicI">Orthorhombic I</button>
-                <button class="menu-nav-button render-button" data-lattice="orthorhombicF">Orthorhombic F</button>
-                <h3>Monoclinic</h3>
-                <button class="menu-nav-button render-button" data-lattice="monoclinicP">Monoclinic P</button>
-                <button class="menu-nav-button render-button" data-lattice="monoclinicC">Monoclinic C</button>
-                <h3>Triclinic</h3>
-                <button class="menu-nav-button render-button" data-lattice="triclinicP">Triclinic P</button>
-                <h3>Trigonal</h3>
-                <button class="menu-nav-button render-button" data-lattice="trigonalR">Trigonal R</button>
-                <h3>Hexagonal</h3>
-                <button class="menu-nav-button render-button" data-lattice="hexagonalP">Hexagonal P</button>
-                <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
+            <div class="input-group">
+                <label for="lengthY">Unit cells (y)</label>
+                <input type="number" id="lengthY" value="1" step="1" min="1">
             </div>
-            <!-- Section for unit cell configuration -->
-            <div id="unitCellSection" class="menu-section">
-                <p>Adjust the size and appearance of the rendered crystal lattice.</p>
-                <div class="input-group">
-                    <label for="lengthX">Unit cells (x)</label>
-                    <input type="number" id="lengthX" value="1" step="1" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="lengthY">Unit cells (y)</label>
-                    <input type="number" id="lengthY" value="1" step="1" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="lengthZ">Unit cells (z)</label>
-                    <input type="number" id="lengthZ" value="1" step="1" min="1">
-                </div>
-                <div class="toggle-group">
-                    <input type="checkbox" id="showFacesToggle">
-                    <label for="showFacesToggle">Show transparent faces</label>
-                </div>
+            <div class="input-group">
+                <label for="lengthZ">Unit cells (z)</label>
+                <input type="number" id="lengthZ" value="1" step="1" min="1">
             </div>
-            <!-- Section for basis management -->
-            <div id="basisSection" class="menu-section">
-                <p>Define the atoms and their positions within the unit cell. You can add new atoms and remove existing ones.</p>
+            <div class="toggle-group">
+                <input type="checkbox" id="showFacesToggle">
+                <label for="showFacesToggle">Show transparent faces</label>
+            </div>
+        </div>
+        <!-- Section for basis management -->
+        <div id="basisSection" class="menu-section">
+            <p>Define the atoms and their positions within the unit cell. You can add new atoms and remove existing ones.</p>
             <h3>Basis Atoms</h3>
             <ul id="basisAtomsList" class="basis-list"></ul>
 
@@ -148,16 +156,15 @@
             </div>
             <button id="renderCustomButton" class="menu-nav-button" style="margin-top: 10px;">Render Custom Lattice</button>
         </div>
-                        <!-- New section for math calculations -->
-                        <div id="mathSection" class="menu-section">
-                            <h3>Math Calculations</h3>
-                            <p>Perform mathematical operations or display results here.</p>
-                            <!-- Add math-related UI here in the future -->   
-                        </div>
-                </div>
-                <!-- Main container for the 3D renderer -->
-                <div class="renderer-container" id="rendererContainer"></div>
-        </div>
+        <!-- New section for math calculations -->
+        <div id="mathSection" class="menu-section">
+          <h3>Math Calculations</h3>
+          <p>Perform mathematical operations or display results here.</p>
+          <!-- Add math-related UI here in the future -->   
+    </div>
+
+    <!-- Main container for the 3D renderer -->
+    <div class="renderer-container" id="rendererContainer"></div>
 
     <!-- THREE.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
