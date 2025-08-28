@@ -710,6 +710,9 @@ window.onload = function() {
                         currentScene = basisScene;
                         currentCamera = basisCamera;
                         updateBasisRenderer();
+                    } 
+                    if (targetId === 'mathSection') {
+                        //dont change renderer when going to math section
                     } else {
                         currentScene = scene;
                         currentCamera = camera;
