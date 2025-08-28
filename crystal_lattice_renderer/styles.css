@@ -15,11 +15,6 @@ body {
             padding: 20px;
             box-sizing: border-box;
             display: flex;
-            /* Ensure the main flex container and its children fill the viewport height */
-            .main-flex-container {
-                display: flex;
-                height: 100vh;
-            }
             flex-direction: column;
             gap: 20px;
             overflow-y: auto;
@@ -122,9 +117,9 @@ body {
         
         /* Styles for the right-hand renderer */
         .renderer-container {
-        width: 75%;
-        position: relative;
-        background-color: #1a1a1a;
+            width: 75%;
+            position: relative;
+            background-color: #1a1a1a;
         }
 
         /* Styles for the new Basis UI elements */
