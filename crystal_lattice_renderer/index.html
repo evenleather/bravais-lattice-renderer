@@ -54,7 +54,26 @@
 
             <div id="latticeParamsDisplay" style="margin-top: 20px; font-size: 0.9em;"></div>
         </div>
-
+        <!-- Section for unit cell configuration -->
+        <div id="unitCellSection" class="menu-section">
+            <p>Adjust the size and appearance of the rendered crystal lattice.</p>
+            <div class="input-group">
+                <label for="lengthX">Unit cells (x)</label>
+                <input type="number" id="lengthX" value="1" step="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="lengthY">Unit cells (y)</label>
+                <input type="number" id="lengthY" value="1" step="1" min="1">
+            </div>
+            <div class="input-group">
+                <label for="lengthZ">Unit cells (z)</label>
+                <input type="number" id="lengthZ" value="1" step="1" min="1">
+            </div>
+            <div class="toggle-group">
+                <input type="checkbox" id="showFacesToggle">
+                <label for="showFacesToggle">Show transparent faces</label>
+            </div>
+        </div>
         <!-- Section for basis management -->
         <div id="basisSection" class="menu-section">
             <p>Define the atoms and their positions within the unit cell. You can add new atoms and remove existing ones.</p>
@@ -83,26 +102,7 @@
             <button id="addAtomButton" class="menu-nav-button" style="margin-top: 10px;">Add Atom</button>
         </div>
 
-        <!-- Section for unit cell configuration -->
-        <div id="unitCellSection" class="menu-section">
-            <p>Adjust the size and appearance of the rendered crystal lattice.</p>
-            <div class="input-group">
-                <label for="lengthX">Unit cells (x)</label>
-                <input type="number" id="lengthX" value="1" step="1" min="1">
-            </div>
-            <div class="input-group">
-                <label for="lengthY">Unit cells (y)</label>
-                <input type="number" id="lengthY" value="1" step="1" min="1">
-            </div>
-            <div class="input-group">
-                <label for="lengthZ">Unit cells (z)</label>
-                <input type="number" id="lengthZ" value="1" step="1" min="1">
-            </div>
-            <div class="toggle-group">
-                <input type="checkbox" id="showFacesToggle">
-                <label for="showFacesToggle">Show transparent faces</label>
-            </div>
-        </div>
+        
         
         <!-- New section for custom lattice parameters -->
         <div id="customSection" class="menu-section">
