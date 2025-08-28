@@ -14,9 +14,10 @@
         <!-- Tab navigation buttons -->
         <div class="menu-nav-button-container">
             <button class="menu-nav-button active" data-target="bravaisSection">Bravais Lattice</button>
-            <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
             <button class="menu-nav-button" data-target="basisSection">Basis</button>
+            <button class="menu-nav-button" data-target="unitCellSection">Unit Cell</button>
             <button class="menu-nav-button" data-target="customSection">Custom</button>
+            <button class="menu-nav-button" data-target="mathSection">Math Section</button>
         </div>
 
         <!-- Section for Bravais lattice selection -->
@@ -101,9 +102,6 @@
             </div>
             <button id="addAtomButton" class="menu-nav-button" style="margin-top: 10px;">Add Atom</button>
         </div>
-
-        
-        
         <!-- New section for custom lattice parameters -->
         <div id="customSection" class="menu-section">
             <p>Define your own lattice parameters to render a custom unit cell.</p>
@@ -158,6 +156,11 @@
             </div>
             <button id="renderCustomButton" class="menu-nav-button" style="margin-top: 10px;">Render Custom Lattice</button>
         </div>
+        <!-- New section for math calculations -->
+        <div id="mathSection" class="menu-section">
+          <h3>Math Calculations</h3>
+          <p>Perform mathematical operations or display results here.</p>
+          <!-- Add math-related UI here in the future -->   
     </div>
 
     <!-- Main container for the 3D renderer -->
