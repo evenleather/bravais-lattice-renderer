@@ -610,7 +610,11 @@ window.onload = function() {
                     basis.forEach(atom => {
                         const sphereMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(atom.color) });
                         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                        sphere.position.copy(atom.position);
+                        sphere.position.copy(
+                        latticeData.a1.clone().multiplyScalar(atom.position.x)
+                        .add(latticeData.a2.clone().multiplyScalar(atom.position.y))
+                        .add(latticeData.a3.clone().multiplyScalar(atom.position.z))
+                        );                  
                         basisLatticeGroup.add(sphere);
                     });
                     renderBasisAtomsList();
