@@ -123,7 +123,6 @@ body {
         /* Styles for the right-hand renderer */
         .renderer-container {
         width: 75%;
-        height: 100vh;
         position: relative;
         background-color: #1a1a1a;
         }
